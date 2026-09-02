@@ -17,8 +17,6 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-ALLOWED_HOSTS = [ "localhost","127.0.0.1","rindu-maharani-myportofolio.pws.cs.ui.ac.id",]
-
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,8 +32,7 @@ SECRET_KEY = 'django-insecure-)f(3djun+da+0k=hpt0jk5-h$b+im&b(9_pb*x)1cxqp0t0#d$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [ "localhost","127.0.0.1","rindu-maharani-myportofolio.pws.cs.ui.ac.id",]
 
 # Application definition
 
