@@ -79,3 +79,25 @@ Make sure Python 3 and Git are installed on your computer.
     ```
 
 7. Open `http://127.0.0.1:8000/` in a browser.
+
+## Weekly Progress
+
+### Week 1 - Tutorials 0 and 1
+
+- Created the Git repository and connected it to GitHub.
+- Created a Python virtual environment and installed the required packages.
+- Created the Django project and prepared it for local development.
+- Connected the main page using a Django view, URL, template, and static files.
+- Built the first About Me page using HTML5 and CSS3.
+- Replaced the sample content with my information, photo, biography, and contact links.
+- Connected the project to PWS and added the deployment address to Django.
+
+### Week 2 - Assignment 1
+
+- Added Skills, Projects, and Education sections.
+- Grouped my skills into three responsive cards.
+- Added three projects with my contributions and deployed application links.
+- Added my senior high school and university education.
+- Made the website responsive on desktop, tablet, and mobile screens.
+- Added CSS animations, hover effects, keyboard focus styles, and reduced motion support.
+- Used a separate branch and made gradual Git commits.
