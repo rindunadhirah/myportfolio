@@ -504,6 +504,196 @@ section[id] {
     border-color: rgba(255, 255, 255, 0.18);
 }
 
+/* Projects section */
+.projects-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* Create a two-column editorial project card */
+.project-card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.1fr);
+    grid-template-areas:
+        "header header"
+        "title preview"
+        "subtitle preview"
+        "context preview"
+        "contribution-title preview"
+        "contributions preview"
+        "tags tags";
+    column-gap: clamp(2rem, 5vw, 4.5rem);
+    row-gap: 0.8rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    color: var(--white);
+    background-color: var(--navy);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: calc(var(--radius-large) + 0.5rem);
+}
+
+/* Place the second project image on the left */
+.project-card:nth-child(even) {
+    grid-template-columns: minmax(20rem, 1.1fr) minmax(0, 0.9fr);
+    grid-template-areas:
+        "header header"
+        "preview title"
+        "preview subtitle"
+        "preview context"
+        "preview contribution-title"
+        "preview contributions"
+        "tags tags";
+}
+
+/* Place the project number beside its date */
+.project-header {
+    grid-area: header;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.project-header .item-number {
+    margin-bottom: 0;
+    color: var(--nude-cream);
+}
+
+.project-header time {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.82rem;
+}
+
+/* Style the project information */
+.project-card > h3 {
+    grid-area: title;
+    color: var(--white);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: -0.05em;
+}
+
+.project-subtitle {
+    grid-area: subtitle;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+.project-context {
+    grid-area: context;
+    color: var(--nude-cream);
+    font-size: 0.88rem;
+}
+
+.project-card > h4 {
+    grid-area: contribution-title;
+    margin-top: 1.25rem;
+    color: var(--nude-cream);
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Display each contribution as a clear row */
+.project-contributions {
+    grid-area: contributions;
+    display: grid;
+    gap: 0.8rem;
+    list-style: none;
+}
+
+.project-contributions li {
+    position: relative;
+    padding-left: 1rem;
+    color: rgba(255, 255, 255, 0.76);
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.project-contributions li::before {
+    content: "";
+    position: absolute;
+    top: 0.65em;
+    left: 0;
+    width: 0.35rem;
+    height: 0.35rem;
+    background-color: var(--brown);
+    border-radius: 50%;
+}
+
+/* Make the complete image area clickable */
+.project-preview {
+    position: relative;
+    grid-area: preview;
+    align-self: start;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: var(--nude-cream);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-large);
+}
+
+/* Keep mobile screenshots in their original ratio */
+.project-preview--portrait {
+    justify-self: center;
+    width: min(100%, 18rem);
+    aspect-ratio: 646 / 1420;
+}
+
+.project-preview--portrait .project-preview-image {
+    object-fit: contain;
+}
+
+.project-preview::after {
+    content: "View live project";
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    padding: 0.55rem 0.8rem;
+    color: var(--white);
+    background-color: rgba(7, 20, 38, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.project-preview:focus-visible {
+    outline: 3px solid var(--nude-cream);
+    outline-offset: 4px;
+}
+
+.project-preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Present technologies as simple metadata */
+.project-tags {
+    grid-area: tags;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    list-style: none;
+}
+
+.project-tags li {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .site-footer {
     padding: 1.5rem;
     color: var(--text-muted);
@@ -543,6 +733,26 @@ section[id] {
 
     .skill-card h3 {
         min-height: auto;
+    }
+
+    /* Stack project content and images on mobile */
+    .project-card,
+    .project-card:nth-child(even) {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "header"
+            "title"
+            "subtitle"
+            "context"
+            "preview"
+            "contribution-title"
+            "contributions"
+            "tags";
+        padding: 1.5rem;
+    }
+
+    .project-preview {
+        margin-block: 1rem;
     }
 }
 
