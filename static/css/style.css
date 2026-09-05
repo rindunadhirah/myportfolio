@@ -674,7 +674,7 @@ section[id] {
     object-fit: cover;
 }
 
-/* Present technologies as simple metadata */
+/* Arrange project tags */
 .project-tags {
     grid-area: tags;
     display: flex;
@@ -692,6 +692,20 @@ section[id] {
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+/* Highlight a verified project achievement */
+.project-result {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 1rem 1.25rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-left: 0.3rem solid var(--brown);
+    border-radius: 0.75rem;
+    font-size: 0.92rem;
+    font-weight: 700;
 }
 
 /* Education section */
