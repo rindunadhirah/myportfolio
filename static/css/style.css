@@ -391,6 +391,119 @@ section[id] {
     transform: rotate(-1.5deg);
 }
 
+/* Give all portfolio sections consistent spacing */
+.portfolio-section {
+    position: relative;
+    padding: clamp(5rem, 10vw, 8rem) 0;
+    background-color: var(--white);
+}
+
+/* Style the introduction above each section */
+.section-heading {
+    max-width: 52rem;
+    margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.section-label {
+    margin-bottom: 0.75rem;
+    color: var(--brown);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.section-heading h2 {
+    max-width: 12ch;
+    color: var(--navy);
+    font-size: clamp(2.75rem, 6vw, 5.5rem);
+    font-weight: 600;
+    letter-spacing: -0.055em;
+}
+
+.section-description {
+    max-width: 42rem;
+    margin-top: 1.25rem;
+    color: var(--text-muted);
+    font-size: clamp(1rem, 1.5vw, 1.12rem);
+}
+
+/* Arrange the skill cards responsively */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, 18rem), 1fr)
+    );
+    gap: 1.25rem;
+}
+
+/* Create one card for each skill category */
+.skill-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 22rem;
+    padding: clamp(1.5rem, 3vw, 2rem);
+    color: var(--navy);
+    background-color: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-large);
+}
+
+/* Use nude cream for the middle card */
+.skill-card:nth-child(2) {
+    background-color: var(--nude-cream);
+    border-color: var(--brown);
+}
+
+/* Use dark navy for the final card */
+.skill-card:nth-child(3) {
+    color: var(--white);
+    background-color: var(--navy);
+    border-color: var(--navy);
+}
+
+.item-number {
+    margin-bottom: 2.5rem;
+    color: var(--brown);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.skill-card:nth-child(3) .item-number {
+    color: var(--nude-cream);
+}
+
+/* Reserve equal space so every skill list aligns */
+.skill-card h3 {
+    min-height: 2.1em;
+    max-width: 16ch;
+    margin-bottom: 2rem;
+    font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+}
+
+/* Keep skills readable without excessive pills */
+.skill-list {
+    list-style: none;
+}
+
+.skill-list li {
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.95rem;
+}
+
+.skill-card:nth-child(2) .skill-list li {
+    border-color: rgba(104, 66, 49, 0.25);
+}
+
+.skill-card:nth-child(3) .skill-list li {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
 .site-footer {
     padding: 1.5rem;
     color: var(--text-muted);
@@ -426,6 +539,10 @@ section[id] {
 
     .meta-list {
         gap: 1.25rem 2rem;
+    }
+
+    .skill-card h3 {
+        min-height: auto;
     }
 }
 
