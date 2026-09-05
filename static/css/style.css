@@ -41,21 +41,87 @@
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* Smoothly move to sections from the navigation */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+}
+
 body {
-    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--ink);
-    background-color: var(--paper);
+    min-height: 100vh;
+    overflow-x: clip;
+    font-family: "Space Grotesk", -apple-system, "Segoe UI", sans-serif;
+    color: var(--navy);
+    background-color: var(--white);
     line-height: 1.6;
 }
 
-h1, .brand {
-    font-family: "Space Grotesk", -apple-system, sans-serif;
+/* Keep headings consistent and easy to scan */
+h1,
+h2,
+h3,
+.brand {
+    font-family: "Space Grotesk", -apple-system, "Segoe UI", sans-serif;
 }
 
+h1,
+h2,
+h3 {
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+p {
+    text-wrap: pretty;
+}
+
+/* Prevent images from overflowing their containers */
+img {
+    display: block;
+    max-width: 100%;
+}
+
+/* Leave room for the sticky navigation when jumping to a section */
+section[id] {
+    scroll-margin-top: 6rem;
+}
+
+/* Match selected text with the portfolio palette */
+::selection {
+    color: var(--navy);
+    background-color: var(--nude-cream);
+}
+
+/* Show the accessibility link only when it receives focus */
+.skip-link {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+    padding: 0.65rem 1rem;
+    color: var(--white);
+    background-color: var(--brown-dark);
+    border-radius: 0.5rem;
+    transform: translateY(-200%);
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+    outline: 3px solid var(--nude-cream);
+    outline-offset: 3px;
+}
+
+/* Keep content centered with responsive side spacing */
 .container {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
+    width: min(100% - 2rem, 72rem);
+    margin-inline: auto;
+}
+
+/* Enable less movement */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
 }
 
 .site-header {
