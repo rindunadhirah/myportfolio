@@ -384,6 +384,47 @@ section[id] {
     transform: rotate(-1.5deg);
 }
 
+/* Reveal the hero content when the page opens */
+.hero-kicker,
+.hero-identity h1,
+.hero-details,
+.hero-photo {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: hero-enter 550ms var(--ease-out) forwards;
+}
+
+/* Reveal each part shortly after the previous one */
+.hero-identity h1 {
+    animation-delay: 80ms;
+}
+
+.hero-details {
+    animation-delay: 160ms;
+}
+
+.hero-photo {
+    animation-delay: 240ms;
+}
+
+@keyframes hero-enter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Use a simple fade when reduced motion is enabled */
+@keyframes hero-fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 /* Give all portfolio sections consistent spacing */
 .portfolio-section {
     position: relative;
@@ -922,6 +963,14 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
+    }
+
+    .hero-kicker,
+    .hero-identity h1,
+    .hero-details,
+    .hero-photo {
+        transform: none;
+        animation: hero-fade 200ms ease forwards;
     }
 
     .project-preview,
