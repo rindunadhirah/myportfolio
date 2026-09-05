@@ -959,6 +959,21 @@ section[id] {
     }
 }
 
+/* Keep the navigation inside narrow phone screens */
+@media (max-width: 22rem) {
+    .site-nav {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0;
+        padding: 0.25rem;
+    }
+
+    .site-nav a {
+        padding: 0.45rem 0.35rem;
+        font-size: 0.8rem;
+    }
+}
+
 /* Reduce movement when requested by the visitor's device */
 @media (prefers-reduced-motion: reduce) {
     html {
