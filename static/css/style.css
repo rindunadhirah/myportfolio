@@ -5,13 +5,40 @@
 }
 
 :root {
-    --ink: #1c1917;
-    --paper: #faf6f0;
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
-    --line: #e3d9c9;
-    --text-muted: #6b6459;
-    --radius: 4px;
+    /* Main color palette */
+    --navy: #071426;
+    --navy-soft: #10233b;
+    --white: #ffffff;
+    --brown: #956247;
+    --brown-dark: #684231;
+    --nude-cream: #ead8c7;
+    --cream-light: #f7efe7;
+    --line: #ded8d1;
+    --text-muted: #6b625d;
+
+    /* Reference-inspired gradients */
+    --brown-gradient: linear-gradient(
+        135deg,
+        #4f3025 0%,
+        #956247 55%,
+        #c38c67 100%
+    );
+    --cream-gradient: linear-gradient(
+        135deg,
+        #ddc4ad 0%,
+        #f7efe7 100%
+    );
+
+    /* Existing names keep the current CSS working */
+    --ink: var(--navy);
+    --paper: var(--white);
+    --accent: var(--brown);
+    --accent-dark: var(--brown-dark);
+
+    /* Shared shape and motion values */
+    --radius: 1rem;
+    --radius-large: 1.5rem;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 body {
