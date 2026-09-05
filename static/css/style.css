@@ -207,17 +207,53 @@ section[id] {
     }
 }
 
+/* Create the main dark-navy introduction */
 .hero {
-    padding: 4.5rem 0 5rem;
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: center;
+    min-height: calc(100svh - 4.75rem);
+    padding:
+        clamp(4rem, 8vw, 7.5rem)
+        0
+        clamp(10rem, 16vw, 14rem);
+    overflow: hidden;
+    color: var(--white);
+    background-color: var(--navy);
 }
 
+/* Blend About into the next white section */
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 0;
+    height: clamp(10rem, 16vw, 14rem);
+    background: linear-gradient(
+        to bottom,
+        var(--navy) 0%,
+        var(--navy-soft) 22%,
+        var(--brown-dark) 45%,
+        var(--brown) 62%,
+        var(--nude-cream) 84%,
+        var(--white) 100%
+    );
+    pointer-events: none;
+}
+
+/* Arrange the introduction beside the portrait */
 .hero-grid {
+    position: relative;
+    z-index: 1;
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
     grid-template-areas:
         "identity photo"
         "details  photo";
-    gap: 1.5rem 3rem;
+    align-items: center;
+    column-gap: clamp(3rem, 7vw, 6rem);
+    row-gap: 2.25rem;
 }
 
 .hero-identity {
@@ -226,94 +262,133 @@ section[id] {
 
 .hero-details {
     grid-area: details;
+    max-width: 42rem;
 }
 
 .hero-kicker {
+    margin-bottom: 1rem;
+    color: var(--nude-cream);
     font-size: 0.85rem;
-    letter-spacing: 0.08em;
+    font-weight: 600;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--accent-dark);
-    font-weight: 700;
-    margin-bottom: 0.75rem;
 }
 
 .hero-identity h1 {
-    font-size: clamp(3rem, 7vw, 5rem);
-    line-height: 0.95;
+    max-width: 11ch;
+    color: var(--white);
+    font-size: clamp(3.5rem, 7.5vw, 7rem);
+    font-weight: 600;
+    line-height: 0.88;
+    letter-spacing: -0.065em;
+    text-wrap: balance;
 }
 
 .bio {
-    color: var(--text-muted);
-    max-width: 480px;
-    margin-bottom: 1.5rem;
+    max-width: 38rem;
+    margin-bottom: 1.75rem;
+    color: rgba(255, 255, 255, 0.74);
+    font-size: clamp(1rem, 1.5vw, 1.15rem);
 }
 
 .meta-list {
     display: flex;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1.25rem 3rem;
+    margin-bottom: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .meta-row dt {
-    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+    color: var(--nude-cream);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    margin-bottom: 0.15rem;
 }
 
 .meta-row dd {
-    font-weight: 600;
+    color: var(--white);
+    font-weight: 500;
 }
 
+/* Style the contact links as compact buttons */
 .social-links {
     display: flex;
-    gap: 0.5rem;
     flex-wrap: wrap;
+    gap: 0.65rem;
 }
 
 .social-link {
-    display: inline-block;
-    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0.65rem 1.1rem;
+    color: var(--cream-light);
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    font-size: 0.88rem;
     font-weight: 600;
     text-decoration: none;
-    color: var(--paper);
-    background-color: var(--ink);
-    border-radius: var(--radius);
-    padding: 0.5rem 1.1rem;
-    transition: background-color 0.2s ease;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        transform 160ms var(--ease-out);
 }
 
-.social-link:hover {
-    background-color: var(--accent);
+.social-link:focus-visible {
+    outline: 2px solid var(--nude-cream);
+    outline-offset: 3px;
 }
 
+.social-link:active {
+    transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .social-link:hover {
+        color: var(--navy);
+        background-color: var(--nude-cream);
+        border-color: var(--nude-cream);
+        transform: translateY(-2px);
+    }
+}
+
+/* Layer the portrait over a brown gradient card */
 .hero-photo {
+    position: relative;
     grid-area: photo;
     align-self: center;
-    position: relative;
+    justify-self: end;
+    width: min(100%, 25rem);
+    aspect-ratio: 3 / 4;
 }
 
 .photo-block {
     position: absolute;
-    top: 1.25rem;
-    left: 1.25rem;
-    width: 100%;
-    height: 100%;
-    background-color: var(--accent);
-    border-radius: var(--radius);
+    inset: 1rem -1rem -1rem 1rem;
     z-index: 0;
+    background-color: var(--brown);
+    border-radius: var(--radius-large);
+    transform: rotate(3deg);
 }
 
 .avatar {
     position: relative;
     z-index: 1;
-    display: block;
     width: 100%;
-    aspect-ratio: 1 / 1;
+    height: 100%;
     object-fit: cover;
-    border-radius: var(--radius);
-    border: 3px solid var(--ink);
+    object-position: center 20%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-large);
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.35);
+    transform: rotate(-1.5deg);
 }
 
 .site-footer {
@@ -323,22 +398,34 @@ section[id] {
     border-top: 1px solid var(--line);
 }
 
-@media (max-width: 600px) {
+/* Stack the hero content on smaller screens */
+@media (max-width: 48rem) {
+    .hero {
+        min-height: auto;
+        padding: 4rem 0 10rem;
+    }
+
     .hero-grid {
         grid-template-columns: 1fr;
         grid-template-areas:
             "identity"
             "photo"
             "details";
+        gap: 2.75rem;
+    }
+
+    .hero-identity h1 {
+        max-width: 10ch;
     }
 
     .hero-photo {
-        max-width: 220px;
+        justify-self: start;
+        width: min(80vw, 20rem);
+        margin-left: 0.5rem;
     }
 
-    .social-links {
-        justify-content: flex-start;
+    .meta-list {
+        gap: 1.25rem 2rem;
     }
-
 }
 
