@@ -117,13 +117,6 @@ section[id] {
     margin-inline: auto;
 }
 
-/* Enable less movement */
-@media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
-}
-
 /* Keep the navigation visible while scrolling */
 .site-header {
     position: sticky;
@@ -636,6 +629,7 @@ section[id] {
     background-color: var(--nude-cream);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: var(--radius-large);
+    transition: transform 160ms var(--ease-out);
 }
 
 /* Keep mobile screenshots in their original ratio */
@@ -649,8 +643,8 @@ section[id] {
     object-fit: contain;
 }
 
-.project-preview::after {
-    content: "View live project";
+/* Position the live-project label over the image */
+.project-preview-label {
     position: absolute;
     right: 1rem;
     bottom: 1rem;
@@ -661,6 +655,11 @@ section[id] {
     border-radius: 999px;
     font-size: 0.78rem;
     font-weight: 600;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        transform 160ms var(--ease-out);
 }
 
 .project-preview:focus-visible {
@@ -672,6 +671,32 @@ section[id] {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 240ms var(--ease-out);
+}
+
+/* Animate only clickable project images */
+@media (hover: hover) and (pointer: fine) {
+    .project-preview:hover {
+        transform: translateY(-3px);
+    }
+
+    .project-preview:hover .project-preview-image {
+        transform: scale(1.025);
+    }
+
+    .project-preview:hover .project-preview-label {
+        transform: translateY(-2px);
+    }
+
+    .project-preview-label:hover {
+        color: var(--navy);
+        background-color: var(--nude-cream);
+        border-color: var(--nude-cream);
+    }
+}
+
+.project-preview:active {
+    transform: scale(0.985);
 }
 
 /* Arrange project tags */
@@ -890,6 +915,33 @@ section[id] {
 
     .education-content {
         padding-left: 1.5rem;
+    }
+}
+
+/* Reduce movement when requested by the visitor's device */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .project-preview,
+    .project-preview-image {
+        transition: none;
+    }
+
+    /* Keep helpful color feedback without movement */
+    .project-preview-label {
+        transition:
+            color 180ms ease,
+            background-color 180ms ease,
+            border-color 180ms ease;
+    }
+
+    .project-preview:hover,
+    .project-preview:active,
+    .project-preview:hover .project-preview-image,
+    .project-preview:hover .project-preview-label {
+        transform: none;
     }
 }
 
