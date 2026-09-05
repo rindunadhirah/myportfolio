@@ -694,6 +694,113 @@ section[id] {
     text-transform: uppercase;
 }
 
+/* Education section */
+.education-section {
+    isolation: isolate;
+    overflow: hidden;
+    padding-top: clamp(10rem, 20vw, 15rem);
+    color: var(--white);
+    background-color: var(--navy);
+}
+
+/* Blend Projects into the Education section */
+.education-section::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 0;
+    height: clamp(8rem, 16vw, 12rem);
+    background: linear-gradient(
+        to bottom,
+        var(--white) 0%,
+        var(--nude-cream) 28%,
+        var(--brown) 55%,
+        var(--brown-dark) 74%,
+        var(--navy) 100%
+    );
+    pointer-events: none;
+}
+
+.education-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Use light text on the navy background */
+.education-section .section-label {
+    color: var(--nude-cream);
+}
+
+.education-section .section-heading h2 {
+    color: var(--white);
+}
+
+.education-section .section-description {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.education-list {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    list-style: none;
+}
+
+/* Arrange the period beside its details */
+.education-item {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 5vw, 4rem);
+    padding: clamp(2rem, 5vw, 3.5rem) 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.education-period {
+    color: var(--nude-cream);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Create the vertical timeline */
+.education-content {
+    position: relative;
+    padding-left: 2rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.education-content::before {
+    content: "";
+    position: absolute;
+    top: 0.4rem;
+    left: -0.42rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: var(--brown);
+    border: 0.18rem solid var(--navy);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--brown);
+}
+
+.education-content h3 {
+    max-width: 24ch;
+    margin-bottom: 0.8rem;
+    color: var(--white);
+    font-size: clamp(1.6rem, 3vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+}
+
+.education-program {
+    color: var(--cream-light);
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.education-faculty {
+    margin-top: 0.25rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+
 .site-footer {
     padding: 1.5rem;
     color: var(--text-muted);
@@ -753,6 +860,16 @@ section[id] {
 
     .project-preview {
         margin-block: 1rem;
+    }
+
+    /* Stack education details on mobile */
+    .education-item {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .education-content {
+        padding-left: 1.5rem;
     }
 }
 
