@@ -124,33 +124,87 @@ section[id] {
     }
 }
 
+/* Keep the navigation visible while scrolling */
 .site-header {
-    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    color: var(--white);
+    background-color: rgba(7, 20, 38, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
-.site-header .container {
+/* Arrange the brand and navigation responsively */
+.nav-container {
+    min-height: 4.75rem;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
+    gap: 0.65rem 1.5rem;
+    padding-block: 0.75rem;
 }
 
 .brand {
+    color: var(--white);
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--ink);
+    letter-spacing: -0.02em;
     text-decoration: none;
+    transition: color 180ms ease;
 }
 
-.site-header nav {
+/* Create the rounded navigation area */
+.site-nav {
     display: flex;
-    gap: 2rem;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.3rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
 }
 
-.site-header nav a {
-    color: var(--ink);
+.site-nav a {
+    padding: 0.5rem 0.65rem;
+    color: var(--cream-light);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1;
     text-decoration: none;
-    font-size: 0.95rem;
+    white-space: nowrap;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        transform 160ms var(--ease-out);
+}
+
+/* Give keyboard users a visible focus indicator */
+.brand:focus-visible,
+.site-nav a:focus-visible {
+    outline: 2px solid var(--nude-cream);
+    outline-offset: 3px;
+}
+
+/* Give links immediate press feedback */
+.site-nav a:active {
+    transform: scale(0.97);
+}
+
+/* Apply hover effects only to devices with a mouse */
+@media (hover: hover) and (pointer: fine) {
+    .brand:hover {
+        color: var(--nude-cream);
+    }
+
+    .site-nav a:hover {
+        color: var(--navy);
+        background-color: var(--nude-cream);
+        transform: translateY(-1px);
+    }
 }
 
 .hero {
