@@ -4,10 +4,13 @@ A personal portfolio website created for Individual Assignment 1 of the Platform
 
 This website introduces my background, developing skills, selected projects, and educational journey. It is built as a static portfolio page using Django templates, semantic HTML5, and CSS3.
 
+## Live Website
+
+[View the deployed portfolio](https://rindu-maharani-myportofolio.pws.cs.ui.ac.id/)
+
 ## Student Information
 
 - **Name:** Rindu Maharani Nadhirah
-- **Nickname:** Nadhirah
 - **NPM:** 2506587131
 - **Class:** PBP D
 
