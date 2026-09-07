@@ -1,62 +1,542 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Basic page information -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nadhirah - Portfolio</title>
+
+    <!-- Description shown by search engines -->
+    <meta
+        name="description"
+        content="Portfolio of Rindu Maharani Nadhirah, a Computer Science undergraduate at Universitas Indonesia."
+    >
+
+    <title>Rindu Maharani Nadhirah | Portfolio</title>
+
+    <!-- Connects to Google Fonts more quickly -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- Loads the font currently used by the stylesheet -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Loads the main stylesheet through Django -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+
 <body>
+    <!-- Lets keyboard users skip the navigation -->
+    <a class="skip-link" href="#main-content">
+        Skip to main content
+    </a>
+
+    <!-- Main page navigation -->
     <header class="site-header">
-        <div class="container">
-            <a href="#profile" class="brand">Nadhirah</a>
-            <nav>
-                <a href="#profile">Profile</a>
+        <div class="container nav-container">
+            <a href="#about" class="brand">
+                Nadhirah
+            </a>
+
+            <nav class="site-nav" aria-label="Primary navigation">
+                <a href="#about">About</a>
+                <a href="#skills">Skills</a>
+                <a href="#projects">Projects</a>
+                <a href="#education">Education</a>
             </nav>
         </div>
     </header>
 
-    <main>
-        <section class="hero" id="profile">
+    <!-- Main portfolio content -->
+    <main id="main-content">
+        <!-- About Me section -->
+        <section
+            class="hero"
+            id="about"
+            aria-labelledby="about-title"
+        >
             <div class="container hero-grid">
+                <!-- Name and university -->
                 <div class="hero-identity">
-                    <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
-                    <h1>Rindu Maharani Nadhirah</h1>
+                    <p class="hero-kicker">
+                        Computer Science &middot; Universitas Indonesia
+                    </p>
+
+                    <h1 id="about-title">
+                        Rindu Maharani Nadhirah
+                    </h1>
                 </div>
+
+                <!-- Profile photograph -->
                 <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/PhotoFrontUI.jpeg" alt="Photo of Nadhirah">
+                    <div class="photo-block" aria-hidden="true"></div>
+
+                    <img
+                        class="avatar"
+                        src="{% static 'img/portraitnadh.jpeg' %}"
+                        alt="Portrait of Rindu Maharani Nadhirah"
+                        width="1074"
+                        height="1280"
+                    >
                 </div>
+
+                <!-- Biography and student information -->
                 <div class="hero-details">
-                    <p class="bio">Computer Science undergraduate at Universitas Indonesia with a growing interest in data science, product
-                    management, and business development. </p>
+                    <p class="bio">
+                        Computer Science undergraduate at Universitas
+                        Indonesia with a growing interest in data science,
+                        product management, and business development.
+                    </p>
+
                     <dl class="meta-list">
                         <div class="meta-row">
                             <dt>NPM</dt>
                             <dd>2506587131</dd>
                         </div>
+
                         <div class="meta-row">
                             <dt>Program</dt>
                             <dd>S1 Ilmu Komputer</dd>
                         </div>
                     </dl>
-                    <div class="social-links">
-                        <a href="https://github.com/rindunadhirah" class="social-link">GitHub</a>
-                        <a href="https://www.linkedin.com/in/rindunadhirah/" class="social-link">LinkedIn</a>
-                        <a href="mailto:rindunadhirah@gmail.com" class="social-link">Email</a>
-                    </div>
+
+                    <!-- Social and contact links -->
+                    <nav
+                        class="social-links"
+                        aria-label="Social and contact links"
+                    >
+                        <a
+                            href="https://github.com/rindunadhirah"
+                            class="social-link"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            GitHub
+                        </a>
+
+                        <a
+                            href="https://www.linkedin.com/in/rindunadhirah/"
+                            class="social-link"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            LinkedIn
+                        </a>
+
+                        <a
+                            href="mailto:rindunadhirah@gmail.com"
+                            class="social-link"
+                        >
+                            Email
+                        </a>
+                    </nav>
                 </div>
             </div>
         </section>
 
+        <!-- Skills section -->
+        <section
+            class="portfolio-section skills-section"
+            id="skills"
+            aria-labelledby="skills-title"
+        >
+            <div class="container">
+                <!-- Skills section introduction -->
+                <header class="section-heading">
+                    <p class="section-label">Skills</p>
+
+                    <h2 id="skills-title">
+                        Skills I am developing
+                    </h2>
+
+                    <p class="section-description">
+                        My technical and product skills have grown through
+                        coursework, competitions, organizational activities,
+                        and collaborative projects.
+                    </p>
+                </header>
+
+                <!-- Each card represents one skill category -->
+                <div class="skills-grid">
+                    <article class="skill-card">
+                        <p class="item-number" aria-hidden="true">
+                            01
+                        </p>
+
+                        <h3>Programming and Web Development</h3>
+
+                        <ul class="skill-list">
+                            <li>Python</li>
+                            <li>Java</li>
+                            <li>HTML5</li>
+                            <li>CSS3</li>
+                            <li>Django</li>
+                            <li>React.js</li>
+                        </ul>
+                    </article>
+
+                    <article class="skill-card">
+                        <p class="item-number" aria-hidden="true">
+                            02
+                        </p>
+
+                        <h3>Product Management</h3>
+
+                        <ul class="skill-list">
+                            <li>Product Requirement Documents</li>
+                            <li>MVP planning</li>
+                            <li>User research</li>
+                            <li>Prototype validation</li>
+                        </ul>
+                    </article>
+
+                    <article class="skill-card">
+                        <p class="item-number" aria-hidden="true">
+                            03
+                        </p>
+
+                        <h3>Tools and Collaboration</h3>
+
+                        <ul class="skill-list">
+                            <li>GitHub</li>
+                            <li>Microsoft Office</li>
+                            <li>Google Workspace</li>
+                            <li>Canva</li>
+                            <li>Team collaboration</li>
+                            <li>Public speaking</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects section -->
+        <section
+            class="portfolio-section projects-section"
+            id="projects"
+            aria-labelledby="projects-title"
+        >
+            <div class="container">
+                <!-- Projects section introduction -->
+                <header class="section-heading">
+                    <p class="section-label">Projects</p>
+
+                    <h2 id="projects-title">
+                        Projects that shaped my learning
+                    </h2>
+
+                    <p class="section-description">
+                        Projects where I contributed to product development,
+                        interface implementation, data preparation, or
+                        artificial intelligence.
+                    </p>
+                </header>
+
+                <!-- Each article represents one complete project -->
+                <div class="projects-grid">
+                    <!-- RumputSehat project -->
+                    <article class="project-card">
+                        <header class="project-header">
+                            <p class="item-number" aria-hidden="true">
+                                01
+                            </p>
+
+                            <time datetime="2026-05">
+                                May 2026
+                            </time>
+                        </header>
+
+                        <h3>RumputSehat EWS</h3>
+
+                        <p class="project-subtitle">
+                            Multimodal Early-Warning System for Ice-Ice Disease
+                        </p>
+
+                        <p class="project-context">
+                            RISTEK Fasilkom UI Datathon 2026 · Semifinalist
+                        </p>
+
+                        <!-- Project image opens the deployed app -->
+                        <a
+                            class="project-preview project-preview--portrait"
+                            href="https://rumputsehat-ews-datathon2026.streamlit.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Open the deployed RumputSehat application"
+                        >
+                            <img
+                                class="project-preview-image"
+                                src="{% static 'img/projects/rumputsehat.webp' %}"
+                                alt="Preview of the RumputSehat application"
+                            />
+                            <span class="project-preview-label">
+                                View live project
+                            </span>
+                        </a>
+
+                        <!-- Personal contributions to RumputSehat -->
+                        <h4>My contributions</h4>
+
+                        <ul class="project-contributions">
+                            <li>
+                                Conducted problem identification and requirements
+                                analysis for Indonesian seaweed farming, then translated
+                                the findings into a multimodal early-warning system
+                                concept for ice-ice disease.
+                            </li>
+
+                            <li>
+                                Co-developed a multimodal AI early-warning system
+                                that combines visual and environmental information
+                                for seaweed farming.
+                            </li>
+
+                            <li>
+                                Contributed to the frontend, backend, and integration
+                                of the AI model into the application.
+                            </li>
+                        </ul>
+
+                        <ul
+                            class="project-tags"
+                            aria-label="RumputSehat project topics"
+                        >
+                            <li>Multimodal AI</li>
+                            <li>Data Annotation</li>
+                            <li>Full-stack Integration</li>
+                        </ul>
+                    </article>
+
+                    <!-- Sortify project -->
+                    <article class="project-card">
+                        <header class="project-header">
+                            <p class="item-number" aria-hidden="true">
+                                02
+                            </p>
+
+                            <time datetime="2026-01">
+                                January 2026
+                            </time>
+                        </header>
+
+                        <h3>Sortify</h3>
+
+                        <p class="project-subtitle">
+                            AI Waste Detector and Classification Web App
+                        </p>
+
+                        <p class="project-context">
+                            HackVidia · Arkavidia National Hackathon
+                        </p>
+
+                        <!-- Project image opens the deployed app -->
+                        <a
+                            class="project-preview"
+                            href="https://sortifyai.netlify.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Open the deployed Sortify application"
+                        >
+                            <img
+                                class="project-preview-image"
+                                src="{% static 'img/projects/sortify.webp' %}"
+                                alt="Preview of the Sortify application"
+                            />
+                            <span class="project-preview-label">
+                                View live project
+                            </span>
+                        </a>
+
+                        <!-- Personal contributions to Sortify -->
+                        <h4>My contributions</h4>
+
+                        <ul class="project-contributions">
+                            <li>
+                                Helped design a web application that identifies
+                                household waste and provides disposal guidance and
+                                nearby facility recommendations.
+                            </li>
+
+                            <li>
+                                Developed the React.js frontend based on Figma
+                                designs and high-fidelity prototypes.
+                            </li>
+
+                            <li>
+                                Implemented interfaces for waste scanning,
+                                classification results, disposal instructions, and
+                                location-based facility discovery.
+                            </li>
+                        </ul>
+
+                        <ul
+                            class="project-tags"
+                            aria-label="Sortify technologies"
+                        >
+                            <li>React.js</li>
+                            <li>Django</li>
+                            <li>TensorFlow and Keras</li>
+                            <li>MobileNet</li>
+                        </ul>
+                    </article>
+
+                    <!-- SisPro project -->
+                    <article class="project-card">
+                        <header class="project-header">
+                            <p class="item-number" aria-hidden="true">
+                                03
+                            </p>
+
+                            <time datetime="2026-07">
+                                July - August 2026
+                            </time>
+                        </header>
+
+                        <h3>SisPro</h3>
+
+                        <p class="project-subtitle">
+                            Women Safety and Smart Protection Platform
+                        </p>
+
+                        <p class="project-context">
+                            Product Manager · SISTECH 2026 Final Project
+                        </p>
+
+                        <!-- Project image opens the deployed app -->
+                        <a
+                            class="project-preview"
+                            href="https://sister-protect.vercel.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Open the deployed SisPro application"
+                        >
+                            <img
+                                class="project-preview-image"
+                                src="{% static 'img/projects/sispro.webp' %}"
+                                alt="Preview of the SisPro application"
+                            />
+                            <span class="project-preview-label">
+                                View live project
+                            </span>
+                        </a>
+
+                        <!-- Personal contributions to SisPro -->
+                        <h4>My contributions</h4>
+
+                        <ul class="project-contributions">
+                            <li>
+                                Co-led product management in a ten-member
+                                cross-functional team.
+                            </li>
+
+                            <li>
+                                Translated user safety concerns into product
+                                requirements, priorities, and execution plans.
+                            </li>
+
+                            <li>
+                                Defined the minimum viable product for Safe Route
+                                and Risk Prediction, Anonymous Reporting,
+                                Emergency SOS, and Journey Monitoring.
+                            </li>
+
+                            <li>
+                                Coordinated user research and prototype validation,
+                                then translated usability findings into prioritized
+                                onboarding and interface improvements.
+                            </li>
+                        </ul>
+
+                        <ul
+                            class="project-tags"
+                            aria-label="SisPro project topics"
+                        >
+                            <li>Product Management</li>
+                            <li>User Research</li>
+                            <li>Product Requirements</li>
+                            <li>Prototype Validation</li>
+                        </ul>
+
+                        <p class="project-result">
+                            Best Final Project at SISTECH 2026
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Education section -->
+        <section
+            class="portfolio-section education-section"
+            id="education"
+            aria-labelledby="education-title"
+        >
+            <div class="container">
+                <!-- Education section introduction -->
+                <header class="section-heading">
+                    <p class="section-label">Education</p>
+
+                    <h2 id="education-title">
+                        My academic journey
+                    </h2>
+
+                    <p class="section-description">
+                        My formal education in mathematics, natural sciences,
+                        and computer science.
+                    </p>
+                </header>
+
+                <!-- Education is ordered from newest to oldest -->
+                <ol class="education-list">
+                    <!-- University education -->
+                    <li class="education-item">
+                        <p class="education-period">
+                            2025 - Present
+                        </p>
+
+                        <div class="education-content">
+                            <h3>Universitas Indonesia</h3>
+
+                            <p class="education-program">
+                                Bachelor of Computer Science
+                            </p>
+
+                            <p class="education-faculty">
+                                Faculty of Computer Science
+                            </p>
+                        </div>
+                    </li>
+
+                    <!-- Senior high school education -->
+                    <li class="education-item">
+                        <p class="education-period">
+                            2022 - 2024
+                        </p>
+
+                        <div class="education-content">
+                            <h3>SMAN 2 Kota Tangerang Selatan</h3>
+
+                            <p class="education-program">
+                                Mathematics and Natural Sciences
+                            </p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </section>
     </main>
 
+    <!-- Page footer -->
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2026 Nadhirah. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p>
+                &copy; 2026 Rindu Maharani Nadhirah.
+                Fakultas Ilmu Komputer, Universitas Indonesia.
+            </p>
         </div>
     </footer>
 </body>
