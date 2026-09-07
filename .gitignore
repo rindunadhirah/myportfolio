@@ -123,3 +123,6 @@ sftp-config.json
 
 # Temporary PDF render files
 /tmp/pdfs/
+
+# Generated static files for deployment
+/staticfiles/
