@@ -13,7 +13,7 @@
         content="Portfolio of Rindu Maharani Nadhirah, a Computer Science undergraduate at Universitas Indonesia."
     >
 
-    <title>Rindu Maharani Nadhirah | Portfolio</title>
+    <title>{{ name }} - Portfolio</title>
 
     <!-- Connects to Google Fonts more quickly -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,15 +38,14 @@
     <!-- Main page navigation -->
     <header class="site-header">
         <div class="container nav-container">
-            <a href="#about" class="brand">
-                Nadhirah
-            </a>
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
 
             <nav class="site-nav" aria-label="Primary navigation">
-                <a href="#about">About</a>
-                <a href="#skills">Skills</a>
-                <a href="#projects">Projects</a>
-                <a href="#education">Education</a>
+                <a href="{% url 'main:show_main' %}#about">About</a>
+                <a href="{% url 'main:show_main' %}#skills">Skills</a>
+                <a href="{% url 'main:show_main' %}#projects">Projects</a>
+                <a href="{% url 'main:show_main' %}#education">Education</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
             </nav>
         </div>
     </header>
@@ -66,41 +65,34 @@
                         Computer Science &middot; Universitas Indonesia
                     </p>
 
-                    <h1 id="about-title">
-                        Rindu Maharani Nadhirah
-                    </h1>
+                    <h1>{{ name }}</h1>
                 </div>
 
                 <!-- Profile photograph -->
                 <div class="hero-photo">
                     <div class="photo-block" aria-hidden="true"></div>
 
-                    <img
-                        class="avatar"
+                    <img 
+                        class="avatar" 
                         src="{% static 'img/portraitnadh.jpeg' %}"
-                        alt="Portrait of Rindu Maharani Nadhirah"
-                        width="1074"
-                        height="1280"
+                        alt="Photo of {{ name }}"
                     >
+                    
                 </div>
 
                 <!-- Biography and student information -->
                 <div class="hero-details">
-                    <p class="bio">
-                        Computer Science undergraduate at Universitas
-                        Indonesia with a growing interest in data science,
-                        product management, and business development.
-                    </p>
+                    <p class="bio">{{ bio }}</p>
 
                     <dl class="meta-list">
                         <div class="meta-row">
                             <dt>NPM</dt>
-                            <dd>2506587131</dd>
+                            <dd>{{ npm }}</dd>
                         </div>
 
                         <div class="meta-row">
                             <dt>Program</dt>
-                            <dd>S1 Ilmu Komputer</dd>
+                            <dd>{{ study_program }}</dd>
                         </div>
                     </dl>
 
@@ -533,9 +525,8 @@
     <!-- Page footer -->
     <footer class="site-footer">
         <div class="container">
-            <p>
-                &copy; 2026 Rindu Maharani Nadhirah.
-                Fakultas Ilmu Komputer, Universitas Indonesia.
+            <p>&copy; 
+                2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.
             </p>
         </div>
     </footer>

@@ -1,0 +1,95 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic page information -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Description shown by search engines -->
+    <meta
+        name="description"
+        content="Portfolio of Rindu Maharani Nadhirah, a Computer Science undergraduate at Universitas Indonesia."
+    >
+
+    <title>Experience - {{ name }}</title>
+
+    <!-- Connects to Google Fonts more quickly -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Loads the font currently used by the stylesheet -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Loads the main stylesheet through Django -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <!-- Lets keyboard users skip the navigation -->
+    <a class="skip-link" href="#main-content">
+        Skip to main content
+    </a>
+
+    <!-- Main page navigation -->
+    <header class="site-header">
+        <div class="container nav-container">
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
+
+            <nav class="site-nav" aria-label="Primary navigation">
+                <a href="{% url 'main:show_main' %}#about">About</a>
+                <a href="{% url 'main:show_main' %}#skills">Skills</a>
+                <a href="{% url 'main:show_main' %}#projects">Projects</a>
+                <a href="{% url 'main:show_main' %}#education">Education</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="experience-section" id="experience">
+            <div class="container">
+                <p class="section-kicker">My journey so far</p>
+                <h1>Experience</h1>
+
+                <div class="experience-grid">
+                    {% for experience in experience_list %}
+                        <article class="experience-card">
+                            <span class="experience-category">
+                                {{ experience.get_category_display }}
+                            </span>
+                            <h2>{{ experience.title }}</h2>
+                            <p class="experience-description">
+                                {{ experience.description }}
+                            </p>
+
+                            {% if experience.is_ongoing %}
+                                <p class="experience-status">Ongoing</p>
+                            {% else %}
+                                <p class="experience-status">Completed</p>
+                            {% endif %}
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">
+                            No experience has been added yet.
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Page footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 
+                2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
