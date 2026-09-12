@@ -86,6 +86,17 @@ class ProjectPageTest(TestCase):
             is_featured=True,
         )
 
+    def test_main_page_displays_project_preview(self):
+        response = self.client.get(reverse("main:show_main"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.project.title)
+        self.assertContains(response, self.project.summary)
+        self.assertContains(
+            response,
+            f'href="{reverse("main:show_projects")}"',
+        )
+
     def test_projects_url_uses_correct_template(self):
         response = self.client.get(reverse("main:show_projects"))
 

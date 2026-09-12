@@ -38,7 +38,7 @@
     <!-- Main page navigation -->
     <header class="site-header">
         <div class="container nav-container">
-            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
+            <a href="{% url 'main:show_main' %}" class="brand">Nadhirah</a>
 
             <nav class="site-nav" aria-label="Primary navigation">
                 <a href="{% url 'main:show_main' %}#about">About</a>
@@ -203,6 +203,78 @@
                         </ul>
                     </article>
                 </div>
+            </div>
+        </section>
+
+        <!-- Short project preview -->
+        <section
+            class="portfolio-section project-overview-section"
+            id="projects"
+            aria-labelledby="project-overview-title"
+        >
+            <div class="container">
+                <header class="section-heading">
+                    <p class="section-label">Projects</p>
+
+                    <h2 id="project-overview-title">
+                        A preview of projects that shaped my learning
+                    </h2>
+
+                    <p class="section-description">
+                        Selected projects in web development, product
+                        development, and artificial intelligence.
+                    </p>
+                </header>
+
+                <div class="project-overview-grid">
+                    {% for project in project_preview_list %}
+                        <article class="project-overview-card">
+                            <p
+                                class="item-number"
+                                aria-hidden="true"
+                            >
+                                {{ forloop.counter|stringformat:"02d" }}
+                            </p>
+
+                            <!-- The image opens the deployed project -->
+                            <a
+                                class="project-overview-image-link"
+                                href="{{ project.project_url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="Open the deployed {{ project.title }} project"
+                            >
+                                <img
+                                    class="project-overview-image"
+                                    src="{% static project.image_path %}"
+                                    alt="Preview of the {{ project.title }} project"
+                                    loading="lazy"
+                                >
+                            </a>
+
+                            <p class="project-overview-role">
+                                {{ project.role }}
+                            </p>
+
+                            <h3>{{ project.title }}</h3>
+
+                            <p class="project-overview-summary">
+                                {{ project.summary }}
+                            </p>
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">
+                            No projects have been added yet.
+                        </p>
+                    {% endfor %}
+                </div>
+
+                <a
+                    class="project-overview-link"
+                    href="{% url 'main:show_projects' %}"
+                >
+                    View all projects
+                </a>
             </div>
         </section>
 

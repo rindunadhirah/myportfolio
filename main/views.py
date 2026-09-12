@@ -13,6 +13,7 @@ def show_main(request):
             "Indonesia with a growing interest in data science, "
             "product management, and business development."
         ),
+        "project_preview_list": Project.objects.all()[:3],
     }
     return render(request, "index.html", context)
 
