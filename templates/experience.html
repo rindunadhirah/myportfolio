@@ -59,13 +59,45 @@
                 <div class="experience-grid">
                     {% for experience in experience_list %}
                         <article class="experience-card">
-                            <span class="experience-category">
-                                {{ experience.get_category_display }}
-                            </span>
+                            <!-- Show the experience type and date -->
+                            <div class="experience-card-header">
+                                <span class="experience-category">
+                                    {{ experience.get_category_display }}
+                                </span>
+
+                                <p class="experience-date">
+                                    <time datetime="{{ experience.started_on|date:'Y-m-d' }}">
+                                        {{ experience.started_on|date:"M Y" }}
+                                    </time>
+                                    -
+                                    {% if experience.ended_on %}
+                                        <time datetime="{{ experience.ended_on|date:'Y-m-d' }}">
+                                            {{ experience.ended_on|date:"M Y" }}
+                                        </time>
+                                    {% else %}
+                                        Present
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <!-- Show the role and organization -->
                             <h2>{{ experience.title }}</h2>
-                            <p class="experience-description">
-                                {{ experience.description }}
+                            <p class="experience-organization">
+                                {{ experience.organization }}
                             </p>
+
+                            <!-- Show each responsibility as a separate point -->
+                            {% if experience.responsibilities %}
+                                <ul class="experience-responsibilities">
+                                    {% for responsibility in experience.responsibilities %}
+                                        <li>{{ responsibility }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="experience-description">
+                                    {{ experience.description }}
+                                </p>
+                            {% endif %}
 
                             {% if experience.is_ongoing %}
                                 <p class="experience-status">Ongoing</p>

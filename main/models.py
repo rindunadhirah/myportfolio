@@ -18,6 +18,8 @@ class Experience(models.Model):
     title = models.CharField(max_length=255)
     organization = models.CharField(max_length=255, default="")
     description = models.TextField()
+    # Store each responsibility as a separate point.
+    responsibilities = models.JSONField(default=list)
     category = models.CharField(
         max_length=20,
         choices=EXPERIENCE_CHOICES,

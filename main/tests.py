@@ -2,7 +2,7 @@ from datetime import date
 
 from django.test import TestCase
 from django.urls import reverse
-
+from django.utils.html import escape
 from main.models import Experience, Project
 
 
@@ -17,6 +17,20 @@ class MainTest(TestCase):
                 "Grade quizzes and help students understand "
                 "Discrete Mathematics concepts."
             ),
+            responsibilities=[
+                (
+                    "Grade quizzes and assess students' understanding "
+                    "of Discrete Mathematics concepts."
+                ),
+                (
+                    "Conduct teaching assistance sessions to explain "
+                    "course materials and answer students' questions."
+                ),
+                (
+                    "Supervise students during quizzes to help the "
+                    "assessments run smoothly."
+                ),
+            ],
             category="part-time",
             started_on=date(2026, 8, 1),
         )
@@ -49,6 +63,7 @@ class MainTest(TestCase):
         )
         self.assertEqual(self.experience.category, "part-time")
         self.assertTrue(self.experience.is_ongoing)
+        self.assertEqual(len(self.experience.responsibilities), 3)
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
@@ -56,7 +71,8 @@ class MainTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
         self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
+        for responsibility in self.experience.responsibilities:
+            self.assertContains(response, escape(responsibility))
         self.assertContains(response, "Part-Time")
         self.assertContains(response, "Ongoing")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')

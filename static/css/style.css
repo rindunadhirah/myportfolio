@@ -1172,13 +1172,25 @@ section[id] {
     }
 }
 
+/* Experience section */
 .experience-section {
-    padding: 4rem 0;
+    padding: clamp(4rem, 8vw, 7rem) 0;
+    background:
+        radial-gradient(
+            circle at 85% 30%,
+            rgba(149, 98, 71, 0.3),
+            transparent 32rem
+        ),
+        linear-gradient(
+            180deg,
+            var(--white),
+            var(--cream-light)
+        );
     border-top: 1px solid var(--line);
 }
 
 .section-kicker {
-    color: var(--accent-dark);
+    color: var(--brown-dark);
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -1186,43 +1198,132 @@ section[id] {
 }
 
 .experience-section h1 {
-    margin: 0.4rem 0 1.5rem;
-    font-size: 2rem;
+    margin: 0.4rem 0 2.5rem;
+    color: var(--navy);
+    font-size: clamp(3rem, 8vw, 6rem);
 }
 
+/* Stack experiences from newest to oldest */
 .experience-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
+    gap: 1.25rem;
+    max-width: 64rem;
 }
 
+/* Style each experience card */
 .experience-card {
-    padding: 1.25rem;
-    background-color: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    padding: clamp(1.5rem, 4vw, 2.25rem);
+    color: var(--white);
+    background-color: rgba(7, 20, 38, 0.88);
+    border: 1px solid rgba(234, 216, 199, 0.5);
+    border-radius: var(--radius-large);
+    box-shadow: 0 1.5rem 3rem rgba(7, 20, 38, 0.14);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition:
+        transform 300ms var(--ease-out),
+        border-color 300ms ease,
+        box-shadow 300ms ease;
+}
+
+.experience-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--nude-cream);
+    box-shadow: 0 1.75rem 3.5rem rgba(7, 20, 38, 0.22);
+}
+
+/* Keep the category and date together */
+.experience-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
 }
 
 .experience-category {
-    color: var(--accent-dark);
-    font-size: 0.75rem;
+    color: var(--nude-cream);
+    font-size: 0.8rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.experience-card h2 {
-    margin: 0.5rem 0;
-    font-size: 1.25rem;
+.experience-date {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.experience-description,
+/* Style the role and organization */
+.experience-card h2 {
+    max-width: 24ch;
+    margin: 1.25rem 0 0.35rem;
+    color: var(--white);
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.experience-organization {
+    color: var(--nude-cream);
+    font-weight: 700;
+}
+
+/* Style the responsibility points */
+.experience-responsibilities {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 70ch;
+    margin-top: 1.25rem;
+    padding-left: 1.25rem;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.experience-responsibilities li {
+    padding-left: 0.35rem;
+}
+
+.experience-responsibilities li::marker {
+    color: var(--nude-cream);
+}
+
+.experience-description {
+    max-width: 70ch;
+    margin-top: 1.25rem;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+/* Show whether the experience is ongoing */
+.experience-status {
+    display: inline-flex;
+    margin-top: 1.5rem;
+    padding: 0.35rem 0.75rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
 .empty-state {
     color: var(--text-muted);
 }
 
-.experience-status {
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
+/* Adjust the cards for small screens */
+@media (max-width: 48rem) {
+    .experience-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
+/* Respect the visitor's motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .experience-card {
+        transition: none;
+    }
+
+    .experience-card:hover {
+        transform: none;
+    }
+}
