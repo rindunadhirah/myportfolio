@@ -9,8 +9,8 @@ def show_main(request):
         "npm": "2506587131",
         "study_program": "S1 Ilmu Komputer",
         "bio": (
-            "Computer Science undergraduate at Universitas"
-            "Indonesia with a growing interest in data science,"
+            "Computer Science undergraduate at Universitas "
+            "Indonesia with a growing interest in data science, "
             "product management, and business development."
         ),
     }
