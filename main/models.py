@@ -6,6 +6,7 @@ from django.db import models
 class Experience(models.Model):
     EXPERIENCE_CHOICES = [
         ("internship", "Internship"),
+        ("program", "Program"),
         ("research", "Research"),
         ("volunteer", "Volunteer"),
         ("part-time", "Part-Time"),
@@ -15,6 +16,7 @@ class Experience(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
+    organization = models.CharField(max_length=255, default="")
     description = models.TextField()
     category = models.CharField(
         max_length=20,
@@ -22,15 +24,18 @@ class Experience(models.Model):
         default="full-time",
     )
     thumbnail = models.URLField(blank=True, null=True)
-    started_at = models.DateTimeField(auto_now_add=True)
-    ended_at = models.DateTimeField(blank=True, null=True)
+    started_on = models.DateField()
+    ended_on = models.DateField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-started_on", "title"]
 
     def __str__(self):
         return self.title
 
     @property
     def is_ongoing(self):
-        return self.ended_at is None
+        return self.ended_on is None
 
 
 class Project(models.Model):

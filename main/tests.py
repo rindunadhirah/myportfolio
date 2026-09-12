@@ -2,7 +2,6 @@ from datetime import date
 
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from main.models import Experience, Project
 
@@ -10,9 +9,14 @@ from main.models import Experience, Project
 class MainTest(TestCase):
     def setUp(self):
         self.experience = Experience.objects.create(
-            title="PBP Teaching Assistant",
-            description="Help students understand web development.",
+            title="Teaching Assistant for Discrete Mathematics 1",
+            organization="Faculty of Computer Science, Universitas Indonesia",
+            description=(
+                "Grade quizzes and help students understand "
+                "Discrete Mathematics concepts."
+            ),
             category="part-time",
+            started_on=date(2026, 8, 1),
         )
 
     def test_main_url_is_accessible(self):
@@ -33,7 +37,14 @@ class MainTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_experience_model(self):
-        self.assertEqual(str(self.experience), "PBP Teaching Assistant")
+        self.assertEqual(
+            str(self.experience),
+            "Teaching Assistant for Discrete Mathematics 1",
+        )
+        self.assertEqual(
+            self.experience.organization,
+            "Faculty of Computer Science, Universitas Indonesia",
+        )
         self.assertEqual(self.experience.category, "part-time")
         self.assertTrue(self.experience.is_ongoing)
 
@@ -55,7 +66,7 @@ class MainTest(TestCase):
         self.assertContains(response, "No experience has been added yet.")
 
     def test_completed_experience(self):
-        self.experience.ended_at = timezone.now()
+        self.experience.ended_on = date(2026, 8, 31)
         self.experience.save()
         response = self.client.get(reverse("main:show_experience"))
 
