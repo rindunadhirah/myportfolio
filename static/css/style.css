@@ -447,6 +447,7 @@ section[id] {
     text-transform: uppercase;
 }
 
+.section-heading h1,
 .section-heading h2 {
     max-width: 12ch;
     color: var(--navy);
@@ -601,7 +602,8 @@ section[id] {
 }
 
 /* Style the project information */
-.project-card > h3 {
+.project-card > h3:not(.project-contribution-title),
+.project-title {
     grid-area: title;
     color: var(--white);
     font-size: clamp(2rem, 4vw, 3.5rem);
@@ -622,7 +624,8 @@ section[id] {
     font-size: 0.88rem;
 }
 
-.project-card > h4 {
+.project-card > h4,
+.project-contribution-title {
     grid-area: contribution-title;
     margin-top: 1.25rem;
     color: var(--nude-cream);
