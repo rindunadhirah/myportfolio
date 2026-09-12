@@ -31,3 +31,38 @@ class Experience(models.Model):
     @property
     def is_ongoing(self):
         return self.ended_at is None
+
+
+class Project(models.Model):
+    # Main project information
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    title = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+    summary = models.TextField()
+    context = models.CharField(max_length=255)
+    role = models.CharField(max_length=100)
+
+    # Multiple contributions and technologies
+    contributions = models.JSONField(default=list)
+    technologies = models.JSONField(default=list)
+
+    # Project media and timeline
+    project_url = models.URLField()
+    image_path = models.CharField(max_length=255)
+    started_on = models.DateField()
+    ended_on = models.DateField(blank=True, null=True)
+
+    # Optional project highlights
+    achievement = models.CharField(max_length=255, blank=True)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-started_on", "title"]
+
+    def __str__(self):
+        return self.title
