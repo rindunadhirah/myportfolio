@@ -8,6 +8,8 @@ from main.models import Experience, Project
 
 class MainTest(TestCase):
     def setUp(self):
+        # Start each test with only one experience.
+        Experience.objects.all().delete()
         self.experience = Experience.objects.create(
             title="Teaching Assistant for Discrete Mathematics 1",
             organization="Faculty of Computer Science, Universitas Indonesia",
