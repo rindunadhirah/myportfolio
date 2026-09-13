@@ -41,7 +41,12 @@ class MainTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "index.html")
         self.assertNotContains(response, self.experience.title)
-        self.assertContains(response, f'href="{reverse("main:show_experience")}"')
+        self.assertContains(
+            response,
+            f'href="{reverse("main:show_experience")}"',
+            count=2,
+        )
+        self.assertContains(response, "The journey behind my work")
         self.assertContains(
             response,
             f'href="{reverse("main:show_projects")}"',

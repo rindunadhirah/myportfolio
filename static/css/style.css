@@ -920,6 +920,156 @@ section[id] {
     }
 }
 
+/* Link the main page to the Experience page */
+/* Place the Journey card after Projects */
+.journey-section {
+    padding: 0 0 clamp(5rem, 10vw, 8rem);
+    color: var(--white);
+    background-color: var(--white);
+}
+
+.journey-card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding: clamp(2rem, 6vw, 4.5rem);
+    color: var(--navy);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(149, 98, 71, 0.28)
+        );
+    border: 1px solid rgba(149, 98, 71, 0.35);
+    border-radius: var(--radius-large);
+    text-decoration: none;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.18);
+    transition:
+        transform 220ms var(--ease-out),
+        border-color 180ms ease,
+        box-shadow 220ms ease;
+}
+
+/* Add a warm highlight behind the text */
+.journey-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            circle at 85% 20%,
+            rgba(234, 216, 199, 0.32),
+            transparent 38%
+        );
+    opacity: 0.45;
+    transition: opacity 220ms ease;
+    pointer-events: none;
+}
+
+.journey-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.journey-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--brown-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.journey-card h2 {
+    max-width: 12ch;
+    color: var(--navy);
+    font-size: clamp(2.75rem, 7vw, 6rem);
+}
+
+.journey-description {
+    max-width: 42rem;
+    margin-top: 1.25rem;
+    color: var(--text-muted);
+    font-size: clamp(1rem, 1.5vw, 1.15rem);
+}
+
+.journey-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    margin-top: 2rem;
+    padding: 0.65rem 1.1rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        transform 160ms var(--ease-out);
+}
+
+.journey-card:focus-visible {
+    outline: 3px solid var(--nude-cream);
+    outline-offset: 4px;
+}
+
+.journey-card:active .journey-action {
+    transform: scale(0.97);
+}
+
+/* Animate the section when it enters the screen */
+@supports (animation-timeline: view()) {
+    .journey-section .container {
+        opacity: 0;
+        transform: translateY(12px);
+        animation: hero-enter 550ms var(--ease-out) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+    }
+}
+
+/* Use hover movement only with a mouse */
+@media (hover: hover) and (pointer: fine) {
+    .journey-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--nude-cream);
+        box-shadow: 0 2rem 4.5rem rgba(0, 0, 0, 0.25);
+    }
+
+    .journey-card:hover::before {
+        opacity: 0.8;
+    }
+
+    .journey-card:hover .journey-action {
+        color: var(--white);
+        background-color: var(--brown);
+    }
+}
+
+/* Use gentler feedback for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .journey-section .container {
+        transform: none;
+        animation: hero-fade 200ms ease forwards;
+        animation-timeline: auto;
+    }
+
+    .journey-card {
+        transition:
+            border-color 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .journey-card:hover,
+    .journey-card:active .journey-action {
+        transform: none;
+    }
+}
+
 /* Education section */
 .education-section {
     isolation: isolate;
@@ -1214,7 +1364,7 @@ section[id] {
 .experience-card {
     padding: clamp(1.5rem, 4vw, 2.25rem);
     color: var(--white);
-    background-color: rgba(7, 20, 38, 0.88);
+    background-color: var(--navy);
     border: 1px solid rgba(234, 216, 199, 0.5);
     border-radius: var(--radius-large);
     box-shadow: 0 1.5rem 3rem rgba(7, 20, 38, 0.14);
