@@ -133,7 +133,7 @@ section[id] {
 .nav-container {
     min-height: 4.75rem;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
     gap: 0.65rem 1.5rem;
@@ -147,17 +147,26 @@ section[id] {
     letter-spacing: -0.02em;
     text-decoration: none;
     transition: color 180ms ease;
+    flex: 0 0 auto;
 }
 
 /* Create the rounded navigation area */
 .site-nav {
     display: flex;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
     align-items: center;
     gap: 0.2rem;
     padding: 0.3rem;
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
+}
+
+/* Hide the navbar scrollbar */
+.site-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .site-nav a {
@@ -425,6 +434,20 @@ section[id] {
     }
 }
 
+/* Reveal project content when it enters the screen */
+@supports (animation-timeline: view()) {
+    .project-overview-section .section-heading,
+    .project-overview-grid,
+    .projects-page .section-heading,
+    .project-card {
+        opacity: 0;
+        transform: translateY(12px);
+        animation: hero-enter 550ms var(--ease-out) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+    }
+}
+
 /* Give all portfolio sections consistent spacing */
 .portfolio-section {
     position: relative;
@@ -447,6 +470,7 @@ section[id] {
     text-transform: uppercase;
 }
 
+.section-heading h1,
 .section-heading h2 {
     max-width: 12ch;
     color: var(--navy);
@@ -601,7 +625,8 @@ section[id] {
 }
 
 /* Style the project information */
-.project-card > h3 {
+.project-card > h3:not(.project-contribution-title),
+.project-title {
     grid-area: title;
     color: var(--white);
     font-size: clamp(2rem, 4vw, 3.5rem);
@@ -622,7 +647,8 @@ section[id] {
     font-size: 0.88rem;
 }
 
-.project-card > h4 {
+.project-card > h4,
+.project-contribution-title {
     grid-area: contribution-title;
     margin-top: 1.25rem;
     color: var(--nude-cream);
@@ -772,6 +798,276 @@ section[id] {
     border-radius: 0.75rem;
     font-size: 0.92rem;
     font-weight: 700;
+}
+
+/* Home project preview */
+.project-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 1.25rem;
+}
+
+/* Create a compact navy project card */
+.project-overview-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    padding: 1.25rem;
+    color: var(--white);
+    background-color: var(--navy);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-large);
+}
+
+.project-overview-card .item-number {
+    margin-bottom: 1rem;
+    color: var(--nude-cream);
+}
+
+/* Give every project preview the same height */
+.project-overview-image-link {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background-color: var(--navy);
+    border-radius: calc(var(--radius-large) - 0.5rem);
+    text-decoration: none;
+    transition: transform 180ms var(--ease-out);
+}
+
+/* Show the complete image without cropping */
+.project-overview-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 240ms var(--ease-out);
+}
+
+/* Style the project information */
+.project-overview-role {
+    margin-top: 1.25rem;
+    color: var(--nude-cream);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.project-overview-card h3 {
+    margin-top: 0.35rem;
+    color: var(--white);
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+}
+
+.project-overview-summary {
+    margin-top: 0.65rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.92rem;
+}
+
+/* Link to the complete Projects page */
+.project-overview-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    margin-top: 2rem;
+    padding: 0.65rem 1.1rem;
+    color: var(--white);
+    background-color: var(--navy);
+    border: 1px solid var(--navy);
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        transform 160ms var(--ease-out);
+}
+
+.project-overview-image-link:focus-visible,
+.project-overview-link:focus-visible {
+    outline: 2px solid var(--brown);
+    outline-offset: 3px;
+}
+
+.project-overview-image-link:active,
+.project-overview-link:active {
+    transform: scale(0.98);
+}
+
+/* Animate links only when a mouse is available */
+@media (hover: hover) and (pointer: fine) {
+    .project-overview-image-link:hover {
+        transform: translateY(-3px);
+    }
+
+    .project-overview-image-link:hover .project-overview-image {
+        transform: scale(1.025);
+    }
+
+    .project-overview-link:hover {
+        color: var(--navy);
+        background-color: var(--nude-cream);
+        transform: translateY(-2px);
+    }
+}
+
+/* Link the main page to the Experience page */
+/* Place the Journey card after Projects */
+.journey-section {
+    padding: 0 0 clamp(5rem, 10vw, 8rem);
+    color: var(--white);
+    background-color: var(--white);
+}
+
+.journey-card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding: clamp(2rem, 6vw, 4.5rem);
+    color: var(--navy);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(149, 98, 71, 0.28)
+        );
+    border: 1px solid rgba(149, 98, 71, 0.35);
+    border-radius: var(--radius-large);
+    text-decoration: none;
+    box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.18);
+    transition:
+        transform 220ms var(--ease-out),
+        border-color 180ms ease,
+        box-shadow 220ms ease;
+}
+
+/* Add a warm highlight behind the text */
+.journey-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(
+            circle at 85% 20%,
+            rgba(234, 216, 199, 0.32),
+            transparent 38%
+        );
+    opacity: 0.45;
+    transition: opacity 220ms ease;
+    pointer-events: none;
+}
+
+.journey-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.journey-label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--brown-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.journey-card h2 {
+    max-width: 12ch;
+    color: var(--navy);
+    font-size: clamp(2.75rem, 7vw, 6rem);
+}
+
+.journey-description {
+    max-width: 42rem;
+    margin-top: 1.25rem;
+    color: var(--text-muted);
+    font-size: clamp(1rem, 1.5vw, 1.15rem);
+}
+
+.journey-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    margin-top: 2rem;
+    padding: 0.65rem 1.1rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    transition:
+        color 180ms ease,
+        background-color 180ms ease,
+        transform 160ms var(--ease-out);
+}
+
+.journey-card:focus-visible {
+    outline: 3px solid var(--nude-cream);
+    outline-offset: 4px;
+}
+
+.journey-card:active .journey-action {
+    transform: scale(0.97);
+}
+
+/* Animate the section when it enters the screen */
+@supports (animation-timeline: view()) {
+    .journey-section .container {
+        opacity: 0;
+        transform: translateY(12px);
+        animation: hero-enter 550ms var(--ease-out) both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+    }
+}
+
+/* Use hover movement only with a mouse */
+@media (hover: hover) and (pointer: fine) {
+    .journey-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--nude-cream);
+        box-shadow: 0 2rem 4.5rem rgba(0, 0, 0, 0.25);
+    }
+
+    .journey-card:hover::before {
+        opacity: 0.8;
+    }
+
+    .journey-card:hover .journey-action {
+        color: var(--white);
+        background-color: var(--brown);
+    }
+}
+
+/* Use gentler feedback for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .journey-section .container {
+        transform: none;
+        animation: hero-fade 200ms ease forwards;
+        animation-timeline: auto;
+    }
+
+    .journey-card {
+        transition:
+            border-color 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .journey-card:hover,
+    .journey-card:active .journey-action {
+        transform: none;
+    }
 }
 
 /* Education section */
@@ -928,6 +1224,11 @@ section[id] {
         min-height: auto;
     }
 
+    /* Stack project previews on smaller screens */
+    .project-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
     /* Stack project content and images on mobile */
     .project-card,
     .project-card:nth-child(even) {
@@ -961,9 +1262,11 @@ section[id] {
 
 /* Keep the navigation inside narrow phone screens */
 @media (max-width: 22rem) {
+    .nav-container {
+        gap: 0.5rem;
+    }
+
     .site-nav {
-        width: 100%;
-        justify-content: space-between;
         gap: 0;
         padding: 0.25rem;
     }
@@ -1007,15 +1310,37 @@ section[id] {
     .project-preview:hover .project-preview-label {
         transform: none;
     }
+
+    /* Use a simple fade for project content */
+    .project-overview-section .section-heading,
+    .project-overview-grid,
+    .projects-page .section-heading,
+    .project-card {
+        transform: none;
+        animation: hero-fade 200ms ease forwards;
+        animation-timeline: auto;
+    }
 }
 
+/* Experience section */
 .experience-section {
-    padding: 4rem 0;
+    padding: clamp(4rem, 8vw, 7rem) 0;
+    background:
+        radial-gradient(
+            circle at 85% 30%,
+            rgba(149, 98, 71, 0.3),
+            transparent 32rem
+        ),
+        linear-gradient(
+            180deg,
+            var(--white),
+            var(--cream-light)
+        );
     border-top: 1px solid var(--line);
 }
 
 .section-kicker {
-    color: var(--accent-dark);
+    color: var(--brown-dark);
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -1023,43 +1348,132 @@ section[id] {
 }
 
 .experience-section h1 {
-    margin: 0.4rem 0 1.5rem;
-    font-size: 2rem;
+    margin: 0.4rem 0 2.5rem;
+    color: var(--navy);
+    font-size: clamp(3rem, 8vw, 6rem);
 }
 
+/* Stack experiences from newest to oldest */
 .experience-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
+    gap: 1.25rem;
+    max-width: 64rem;
 }
 
+/* Style each experience card */
 .experience-card {
-    padding: 1.25rem;
-    background-color: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    padding: clamp(1.5rem, 4vw, 2.25rem);
+    color: var(--white);
+    background-color: var(--navy);
+    border: 1px solid rgba(234, 216, 199, 0.5);
+    border-radius: var(--radius-large);
+    box-shadow: 0 1.5rem 3rem rgba(7, 20, 38, 0.14);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition:
+        transform 300ms var(--ease-out),
+        border-color 300ms ease,
+        box-shadow 300ms ease;
+}
+
+.experience-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--nude-cream);
+    box-shadow: 0 1.75rem 3.5rem rgba(7, 20, 38, 0.22);
+}
+
+/* Keep the category and date together */
+.experience-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem 1.5rem;
 }
 
 .experience-category {
-    color: var(--accent-dark);
-    font-size: 0.75rem;
+    color: var(--nude-cream);
+    font-size: 0.8rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
-.experience-card h2 {
-    margin: 0.5rem 0;
-    font-size: 1.25rem;
+.experience-date {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.experience-description,
+/* Style the role and organization */
+.experience-card h2 {
+    max-width: 24ch;
+    margin: 1.25rem 0 0.35rem;
+    color: var(--white);
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.experience-organization {
+    color: var(--nude-cream);
+    font-weight: 700;
+}
+
+/* Style the responsibility points */
+.experience-responsibilities {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 70ch;
+    margin-top: 1.25rem;
+    padding-left: 1.25rem;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.experience-responsibilities li {
+    padding-left: 0.35rem;
+}
+
+.experience-responsibilities li::marker {
+    color: var(--nude-cream);
+}
+
+.experience-description {
+    max-width: 70ch;
+    margin-top: 1.25rem;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+/* Show whether the experience is ongoing */
+.experience-status {
+    display: inline-flex;
+    margin-top: 1.5rem;
+    padding: 0.35rem 0.75rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
 .empty-state {
     color: var(--text-muted);
 }
 
-.experience-status {
-    margin-top: 1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
+/* Adjust the cards for small screens */
+@media (max-width: 48rem) {
+    .experience-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
+/* Respect the visitor's motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .experience-card {
+        transition: none;
+    }
+
+    .experience-card:hover {
+        transform: none;
+    }
+}
