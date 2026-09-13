@@ -1,8 +1,8 @@
 # Rindu Maharani Nadhirah - Personal Portfolio
 
-A personal portfolio website created for Individual Assignment 1 of the Platform-Based Programming course at the Faculty of Computer Science, Universitas Indonesia.
+A personal portfolio website created for Individual Assignment of the Platform-Based Programming course at the Faculty of Computer Science, Universitas Indonesia.
 
-This website introduces my background, developing skills, selected projects, and educational journey. It is built as a static portfolio page using Django templates, semantic HTML5, and CSS3.
+This website introduces my background, skills, projects, experience, and education. It uses Django's Model-View-Template structure, with project and experience information stored in a database.
 
 ## Live Website
 
@@ -19,11 +19,14 @@ This website introduces my background, developing skills, selected projects, and
 - **About Me:** Introduces my background, academic program, interests, and contact links.
 - **Skills:** Organizes my technical, product management, and collaboration skills.
 - **Projects:** Presents projects I have worked on, my contributions, and links to their deployed applications.
+- **Experience:** Shows my roles, programs, responsibilities, and work history in chronological order.
 - **Education:** Shows my educational journey from senior high school to university.
 
 ## Technologies Used
 
-- **Python and Django:** Run the web application and render the portfolio template.
+- **Python and Django:** Handle the website routes, views, models, templates, and data.
+- **Django Template Language:** Displays database content dynamically inside HTML templates.
+- **SQLite:** Stores project and experience information.
 - **HTML5:** Provides the semantic structure of the portfolio.
 - **CSS3:** Controls the colors, layouts, responsiveness, hover effects, and animations.
 - **Git and GitHub:** Track the project's development and commit history.
@@ -105,6 +108,18 @@ Make sure Python 3 and Git are installed on your computer.
 - Added CSS animations, hover effects, keyboard focus styles, and reduced motion support.
 - Used a separate branch and made gradual Git commits.
 
+### Week 3 - Tutorial 2 and Assignment 2
+
+- Created Django models for Experience and Project data.
+- Created and applied schema and data migrations.
+- Displayed experience and project data from the database using Django templates.
+- Created separate pages for Projects and Experience.
+- Added named URL routes and connected the pages through the navigation bar.
+- Added an Experience Journey card to the main page.
+- Added empty states for pages that do not have data.
+- Added tests for page access, templates, database content, and empty states.
+- Kept the new pages responsive and consistent with the original portfolio design.
+
 ## Reflective Questions
 
 ### Assignment 1
@@ -124,6 +139,28 @@ Make sure Python 3 and Git are installed on your computer.
    The website also does not have a working contact form, project filters, or a private page for managing content. The email link can open an email application, but visitors cannot send a message directly through the website.
 
    In the next version, I would add project filters so recruiters could quickly find projects based on my role or the technologies I used. I would also add buttons that open more project details, such as the problem, my responsibilities, and the final result. Then, it would be good as well to have a downloadable CV and a contact form that would make it easier for recruiters to learn more about me and contact me.
+
+### Assignment 2
+
+1. When a user opens the Projects page, the browser sends a request to `/projects/`. The project-level `portofolio/urls.py` receives the request first. It uses `include()` to send the request to `main/urls.py`.
+
+   The application-level `main/urls.py` matches `/projects/` with the named `show_projects` route. It then calls the `show_projects` view in `main/views.py`.
+
+   The view asks the `Project` model for all project objects. The model represents the project data stored in the database. Django uses its Object-Relational Mapper to read the data without requiring a direct SQL query.
+
+   The view places the result inside the `project_list` context and sends it to `projects.html`. The template uses a Django Template Language loop to display every project. If there are no projects, the `{% empty %}` block displays an empty message. Django renders the completed HTML and returns it to the browser.
+
+2. I store project data in a model to keep the data separate from the page design. The model stores information such as the project title, role, summary, date, image, contributions, and technologies. The template is only responsible for deciding how that information appears on the page.
+
+   This structure makes the website easier to maintain. I can add or update a project in the database without copying and editing a large HTML card. Every project also follows the same field structure, which reduces missing or inconsistent information.
+
+   The same project data can be reused in different places. My main page displays a short project preview, while the Projects page displays the complete list. In the future, I can also add project filters, search, an admin page, or detail pages without rewriting all project content.
+
+3. `makemigrations` creates a migration file based on changes made to a Django model. The migration file records what should change in the database, but it does not apply the change yet.
+
+   `migrate` reads the migration file and applies the recorded change to the database. It creates or updates the required database tables and columns.
+
+   For example, when I created the `Project` model, I ran `python manage.py makemigrations` to create its migration file. I then ran `python manage.py migrate` to create the project table in the database. Both commands are needed because the first command prepares the instructions and the second command applies them.
 
 ## AI Use and Prompt History
 
@@ -149,6 +186,10 @@ The following table contains shortened versions of the main prompts used during 
 | Add animation | Add CSS animation and reduced motion support without making the website distracting. | I tested the motion and increased the hero animation duration because it was too fast. |
 | Check the assignment scope | Read the assignment PDF again and check whether JavaScript is suitable for Assignment 1. | I questioned the JavaScript suggestion and decided to keep the website within the HTML5 and CSS3 scope. |
 | Check project information | Use my CV for the project descriptions and remove the SisPro SUS score because its source is unclear. | I checked the AI generated claims and kept only information supported by my CV. |
+| Understand Django MVT | Explain how the project URL, application URL, view, model, and template work together. | I followed the request flow in my own code and used it to build the Projects page. |
+| Question migration choices | Explain when I should create a new migration and whether every data change needs one. | I learned the difference between changing the database structure and changing existing data. |
+| Check the assignment requirement | Show proof from the assignment about where the Experience section should appear. | I checked the original wording and used a Journey card that links to the full Experience page. |
+| Correct experience information | Remove the PBP teaching assistant example because it is not in my CV. Use only my real experience. | I rejected the incorrect example, checked my CV, and kept only information that represents my experience. |
 
 ### AI Limitations and My Manual Fixes
 
@@ -158,5 +199,9 @@ The AI was useful, but its answers were not always correct or suitable for my as
 - Some first CSS suggestions did not match the layout I wanted. I changed the portrait ratio, card alignment, project-image frame, colors, and animation speed after testing them.
 - The navigation looked correct on regular mobile screens but became clipped at 320 pixels. I fixed it after testing a narrower screen.
 - I checked the website and ran Django checks before commits instead of assuming that every generated suggestion would work.
+- The AI first used a PBP teaching assistant role as an example even though it was not in my CV. I noticed the mistake and replaced it with my real experience.
+- The AI suggested an Experience preview before proving that the assignment required one. I rechecked the assignment instructions and chose a journey card that better matched my portfolio.
+- Some project image styles made one of my project's image too tall or gave it the wrong frame size. I tested the page and adjusted the image container until all project cards had a consistent size.
+- I checked every model, migration, template, and test before committing instead of accepting the generated code immediately.
 
 In conclusion, AI helped me with ideas and explanations, but I still check the original assignment, confirm facts, understand the code, and test the result myself.
