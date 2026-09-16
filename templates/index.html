@@ -1,380 +1,332 @@
+{% extends 'base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <!-- Basic page information -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Description shown by search engines -->
+{% block meta %}
     <meta
         name="description"
         content="Portfolio of Rindu Maharani Nadhirah, a Computer Science undergraduate at Universitas Indonesia."
     >
-
     <title>{{ name }} - Portfolio</title>
+{% endblock meta %}
 
-    <!-- Connects to Google Fonts more quickly -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <!-- Loads the font currently used by the stylesheet -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
-        rel="stylesheet"
+    
+{% block content %}
+<!-- Main portfolio content -->
+<main id="main-content">
+    <!-- About Me section -->
+    <section
+        class="hero"
+        id="about"
+        aria-labelledby="about-title"
     >
+        <div class="container hero-grid">
+            <!-- Name and university -->
+            <div class="hero-identity">
+                <p class="hero-kicker">
+                    Computer Science &middot; Universitas Indonesia
+                </p>
 
-    <!-- Loads the main stylesheet through Django -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
+                <h1>{{ name }}</h1>
+            </div>
 
-<body>
-    <!-- Lets keyboard users skip the navigation -->
-    <a class="skip-link" href="#main-content">
-        Skip to main content
-    </a>
+            <!-- Profile photograph -->
+            <div class="hero-photo">
+                <div class="photo-block" aria-hidden="true"></div>
 
-    <!-- Main page navigation -->
-    <header class="site-header">
-        <div class="container nav-container">
-            <a href="{% url 'main:show_main' %}" class="brand">Nadhirah</a>
+                <img 
+                    class="avatar" 
+                    src="{% static 'img/portraitnadh.jpeg' %}"
+                    alt="Photo of {{ name }}"
+                >
+                
+            </div>
 
-            <nav class="site-nav" aria-label="Primary navigation">
-                <a href="{% url 'main:show_main' %}#about">About</a>
-                <a href="{% url 'main:show_main' %}#skills">Skills</a>
-                <a href="{% url 'main:show_projects' %}">Projects</a>
-                <a href="{% url 'main:show_main' %}#education">Education</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
-            </nav>
+            <!-- Biography and student information -->
+            <div class="hero-details">
+                <p class="bio">{{ bio }}</p>
+
+                <dl class="meta-list">
+                    <div class="meta-row">
+                        <dt>NPM</dt>
+                        <dd>{{ npm }}</dd>
+                    </div>
+
+                    <div class="meta-row">
+                        <dt>Program</dt>
+                        <dd>{{ study_program }}</dd>
+                    </div>
+                </dl>
+
+                <!-- Social and contact links -->
+                <nav
+                    class="social-links"
+                    aria-label="Social and contact links"
+                >
+                    <a
+                        href="https://github.com/rindunadhirah"
+                        class="social-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        GitHub
+                    </a>
+
+                    <a
+                        href="https://www.linkedin.com/in/rindunadhirah/"
+                        class="social-link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        LinkedIn
+                    </a>
+
+                    <a
+                        href="mailto:rindunadhirah@gmail.com"
+                        class="social-link"
+                    >
+                        Email
+                    </a>
+                </nav>
+            </div>
         </div>
-    </header>
+    </section>
 
-    <!-- Main portfolio content -->
-    <main id="main-content">
-        <!-- About Me section -->
-        <section
-            class="hero"
-            id="about"
-            aria-labelledby="about-title"
-        >
-            <div class="container hero-grid">
-                <!-- Name and university -->
-                <div class="hero-identity">
-                    <p class="hero-kicker">
-                        Computer Science &middot; Universitas Indonesia
-                    </p>
-
-                    <h1>{{ name }}</h1>
-                </div>
-
-                <!-- Profile photograph -->
-                <div class="hero-photo">
-                    <div class="photo-block" aria-hidden="true"></div>
-
-                    <img 
-                        class="avatar" 
-                        src="{% static 'img/portraitnadh.jpeg' %}"
-                        alt="Photo of {{ name }}"
-                    >
-                    
-                </div>
-
-                <!-- Biography and student information -->
-                <div class="hero-details">
-                    <p class="bio">{{ bio }}</p>
-
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>NPM</dt>
-                            <dd>{{ npm }}</dd>
-                        </div>
-
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>{{ study_program }}</dd>
-                        </div>
-                    </dl>
-
-                    <!-- Social and contact links -->
-                    <nav
-                        class="social-links"
-                        aria-label="Social and contact links"
-                    >
-                        <a
-                            href="https://github.com/rindunadhirah"
-                            class="social-link"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            GitHub
-                        </a>
-
-                        <a
-                            href="https://www.linkedin.com/in/rindunadhirah/"
-                            class="social-link"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            LinkedIn
-                        </a>
-
-                        <a
-                            href="mailto:rindunadhirah@gmail.com"
-                            class="social-link"
-                        >
-                            Email
-                        </a>
-                    </nav>
-                </div>
-            </div>
-        </section>
-
-        <!-- Skills section -->
-        <section
-            class="portfolio-section skills-section"
-            id="skills"
-            aria-labelledby="skills-title"
-        >
-            <div class="container">
-                <!-- Skills section introduction -->
-                <header class="section-heading">
-                    <p class="section-label">Skills</p>
-
-                    <h2 id="skills-title">
-                        Skills I am developing
-                    </h2>
-
-                    <p class="section-description">
-                        My technical and product skills have grown through
-                        coursework, competitions, organizational activities,
-                        and collaborative projects.
-                    </p>
-                </header>
-
-                <!-- Each card represents one skill category -->
-                <div class="skills-grid">
-                    <article class="skill-card">
-                        <p class="item-number" aria-hidden="true">
-                            01
-                        </p>
-
-                        <h3>Programming and Web Development</h3>
-
-                        <ul class="skill-list">
-                            <li>Python</li>
-                            <li>Java</li>
-                            <li>HTML5</li>
-                            <li>CSS3</li>
-                            <li>Django</li>
-                            <li>React.js</li>
-                        </ul>
-                    </article>
-
-                    <article class="skill-card">
-                        <p class="item-number" aria-hidden="true">
-                            02
-                        </p>
-
-                        <h3>Product Management</h3>
-
-                        <ul class="skill-list">
-                            <li>Product Requirement Documents</li>
-                            <li>MVP planning</li>
-                            <li>User research</li>
-                            <li>Prototype validation</li>
-                        </ul>
-                    </article>
-
-                    <article class="skill-card">
-                        <p class="item-number" aria-hidden="true">
-                            03
-                        </p>
-
-                        <h3>Tools and Collaboration</h3>
-
-                        <ul class="skill-list">
-                            <li>GitHub</li>
-                            <li>Microsoft Office</li>
-                            <li>Google Workspace</li>
-                            <li>Canva</li>
-                            <li>Team collaboration</li>
-                            <li>Public speaking</li>
-                        </ul>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <!-- Short project preview -->
-        <section
-            class="portfolio-section project-overview-section"
-            id="projects"
-            aria-labelledby="project-overview-title"
-        >
-            <div class="container">
-                <header class="section-heading">
-                    <p class="section-label">Projects</p>
-
-                    <h2 id="project-overview-title">
-                        A preview of projects that shaped my learning
-                    </h2>
-
-                    <p class="section-description">
-                        Selected projects in web development, product
-                        development, and artificial intelligence.
-                    </p>
-                </header>
-
-                <div class="project-overview-grid">
-                    {% for project in project_preview_list %}
-                        <article class="project-overview-card">
-                            <p
-                                class="item-number"
-                                aria-hidden="true"
-                            >
-                                {{ forloop.counter|stringformat:"02d" }}
-                            </p>
-
-                            <!-- The image opens the deployed project -->
-                            <a
-                                class="project-overview-image-link"
-                                href="{{ project.project_url }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="Open the deployed {{ project.title }} project"
-                            >
-                                <img
-                                    class="project-overview-image"
-                                    src="{% static project.image_path %}"
-                                    alt="Preview of the {{ project.title }} project"
-                                    loading="lazy"
-                                >
-                            </a>
-
-                            <p class="project-overview-role">
-                                {{ project.role }}
-                            </p>
-
-                            <h3>{{ project.title }}</h3>
-
-                            <p class="project-overview-summary">
-                                {{ project.summary }}
-                            </p>
-                        </article>
-                    {% empty %}
-                        <p class="empty-state">
-                            No projects have been added yet.
-                        </p>
-                    {% endfor %}
-                </div>
-
-                <a
-                    class="project-overview-link"
-                    href="{% url 'main:show_projects' %}"
-                >
-                    View all projects
-                </a>
-            </div>
-        </section>
-
-        <!-- Link to the full Experience page -->
-        <section
-            class="journey-section"
-            id="experience"
-            aria-labelledby="journey-title"
-        >
-            <div class="container">
-                <a
-                    class="journey-card"
-                    href="{% url 'main:show_experience' %}"
-                >
-                    <span class="journey-label">Experience</span>
-
-                    <h2 id="journey-title">
-                        The journey behind my work
-                    </h2>
-
-                    <p class="journey-description">
-                        Explore the roles and programs that have shaped how I
-                        learn, collaborate, and contribute to products.
-                    </p>
-
-                    <span class="journey-action">
-                        View my experience
-                    </span>
-                </a>
-            </div>
-        </section>
-
-        <!-- Education section -->
-        <section
-            class="portfolio-section education-section"
-            id="education"
-            aria-labelledby="education-title"
-        >
-            <div class="container">
-                <!-- Education section introduction -->
-                <header class="section-heading">
-                    <p class="section-label">Education</p>
-
-                    <h2 id="education-title">
-                        My academic journey
-                    </h2>
-
-                    <p class="section-description">
-                        My formal education in mathematics, natural sciences,
-                        and computer science.
-                    </p>
-                </header>
-
-                <!-- Education is ordered from newest to oldest -->
-                <ol class="education-list">
-                    <!-- University education -->
-                    <li class="education-item">
-                        <p class="education-period">
-                            2025 - Present
-                        </p>
-
-                        <div class="education-content">
-                            <h3>Universitas Indonesia</h3>
-
-                            <p class="education-program">
-                                Bachelor of Computer Science
-                            </p>
-
-                            <p class="education-faculty">
-                                Faculty of Computer Science
-                            </p>
-                        </div>
-                    </li>
-
-                    <!-- Senior high school education -->
-                    <li class="education-item">
-                        <p class="education-period">
-                            2022 - 2024
-                        </p>
-
-                        <div class="education-content">
-                            <h3>SMAN 2 Kota Tangerang Selatan</h3>
-
-                            <p class="education-program">
-                                Mathematics and Natural Sciences
-                            </p>
-                        </div>
-                    </li>
-                </ol>
-            </div>
-        </section>
-    </main>
-
-    <!-- Page footer -->
-    <footer class="site-footer">
+    <!-- Skills section -->
+    <section
+        class="portfolio-section skills-section"
+        id="skills"
+        aria-labelledby="skills-title"
+    >
         <div class="container">
-            <p>&copy; 
-                2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.
-            </p>
+            <!-- Skills section introduction -->
+            <header class="section-heading">
+                <p class="section-label">Skills</p>
+
+                <h2 id="skills-title">
+                    Skills I am developing
+                </h2>
+
+                <p class="section-description">
+                    My technical and product skills have grown through
+                    coursework, competitions, organizational activities,
+                    and collaborative projects.
+                </p>
+            </header>
+
+            <!-- Each card represents one skill category -->
+            <div class="skills-grid">
+                <article class="skill-card">
+                    <p class="item-number" aria-hidden="true">
+                        01
+                    </p>
+
+                    <h3>Programming and Web Development</h3>
+
+                    <ul class="skill-list">
+                        <li>Python</li>
+                        <li>Java</li>
+                        <li>HTML5</li>
+                        <li>CSS3</li>
+                        <li>Django</li>
+                        <li>React.js</li>
+                    </ul>
+                </article>
+
+                <article class="skill-card">
+                    <p class="item-number" aria-hidden="true">
+                        02
+                    </p>
+
+                    <h3>Product Management</h3>
+
+                    <ul class="skill-list">
+                        <li>Product Requirement Documents</li>
+                        <li>MVP planning</li>
+                        <li>User research</li>
+                        <li>Prototype validation</li>
+                    </ul>
+                </article>
+
+                <article class="skill-card">
+                    <p class="item-number" aria-hidden="true">
+                        03
+                    </p>
+
+                    <h3>Tools and Collaboration</h3>
+
+                    <ul class="skill-list">
+                        <li>GitHub</li>
+                        <li>Microsoft Office</li>
+                        <li>Google Workspace</li>
+                        <li>Canva</li>
+                        <li>Team collaboration</li>
+                        <li>Public speaking</li>
+                    </ul>
+                </article>
+            </div>
         </div>
-    </footer>
-</body>
-</html>
+    </section>
+
+    <!-- Short project preview -->
+    <section
+        class="portfolio-section project-overview-section"
+        id="projects"
+        aria-labelledby="project-overview-title"
+    >
+        <div class="container">
+            <header class="section-heading">
+                <p class="section-label">Projects</p>
+
+                <h2 id="project-overview-title">
+                    A preview of projects that shaped my learning
+                </h2>
+
+                <p class="section-description">
+                    Selected projects in web development, product
+                    development, and artificial intelligence.
+                </p>
+            </header>
+
+            <div class="project-overview-grid">
+                {% for project in project_preview_list %}
+                    <article class="project-overview-card">
+                        <p
+                            class="item-number"
+                            aria-hidden="true"
+                        >
+                            {{ forloop.counter|stringformat:"02d" }}
+                        </p>
+
+                        <!-- The image opens the deployed project -->
+                        <a
+                            class="project-overview-image-link"
+                            href="{{ project.project_url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="Open the deployed {{ project.title }} project"
+                        >
+                            <img
+                                class="project-overview-image"
+                                src="{% static project.image_path %}"
+                                alt="Preview of the {{ project.title }} project"
+                                loading="lazy"
+                            >
+                        </a>
+
+                        <p class="project-overview-role">
+                            {{ project.role }}
+                        </p>
+
+                        <h3>{{ project.title }}</h3>
+
+                        <p class="project-overview-summary">
+                            {{ project.summary }}
+                        </p>
+                    </article>
+                {% empty %}
+                    <p class="empty-state">
+                        No projects have been added yet.
+                    </p>
+                {% endfor %}
+            </div>
+
+            <a
+                class="project-overview-link"
+                href="{% url 'main:show_projects' %}"
+            >
+                View all projects
+            </a>
+        </div>
+    </section>
+
+    <!-- Link to the full Experience page -->
+    <section
+        class="journey-section"
+        id="experience"
+        aria-labelledby="journey-title"
+    >
+        <div class="container">
+            <a
+                class="journey-card"
+                href="{% url 'main:show_experience' %}"
+            >
+                <span class="journey-label">Experience</span>
+
+                <h2 id="journey-title">
+                    The journey behind my work
+                </h2>
+
+                <p class="journey-description">
+                    Explore the roles and programs that have shaped how I
+                    learn, collaborate, and contribute to products.
+                </p>
+
+                <span class="journey-action">
+                    View my experience
+                </span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Education section -->
+    <section
+        class="portfolio-section education-section"
+        id="education"
+        aria-labelledby="education-title"
+    >
+        <div class="container">
+            <!-- Education section introduction -->
+            <header class="section-heading">
+                <p class="section-label">Education</p>
+
+                <h2 id="education-title">
+                    My academic journey
+                </h2>
+
+                <p class="section-description">
+                    My formal education in mathematics, natural sciences,
+                    and computer science.
+                </p>
+            </header>
+
+            <!-- Education is ordered from newest to oldest -->
+            <ol class="education-list">
+                <!-- University education -->
+                <li class="education-item">
+                    <p class="education-period">
+                        2025 - Present
+                    </p>
+
+                    <div class="education-content">
+                        <h3>Universitas Indonesia</h3>
+
+                        <p class="education-program">
+                            Bachelor of Computer Science
+                        </p>
+
+                        <p class="education-faculty">
+                            Faculty of Computer Science
+                        </p>
+                    </div>
+                </li>
+
+                <!-- Senior high school education -->
+                <li class="education-item">
+                    <p class="education-period">
+                        2022 - 2024
+                    </p>
+
+                    <div class="education-content">
+                        <h3>SMAN 2 Kota Tangerang Selatan</h3>
+
+                        <p class="education-program">
+                            Mathematics and Natural Sciences
+                        </p>
+                    </div>
+                </li>
+            </ol>
+        </div>
+    </section>
+</main>
+{% endblock content %}
+

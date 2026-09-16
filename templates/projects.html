@@ -1,8 +1,7 @@
+{% extends "base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% block meta %}
     <!-- Basic page information -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,111 +12,72 @@
     >
 
     <title>Projects - Nadhirah</title>
+{% endblock meta %}
 
-    <!-- Connects to Google Fonts more quickly -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- Loads the main stylesheet through Django -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-
-<body>
-    <!-- Lets keyboard users skip the navigation -->
-    <a class="skip-link" href="#main-content">
-        Skip to main content
-    </a>
-
-    <!-- Main page navigation -->
-    <header class="site-header">
-        <div class="container nav-container">
-            <a
-                href="{% url 'main:show_main' %}"
-                class="brand"
-            >
-                Nadhirah
-            </a>
-
-            <nav class="site-nav" aria-label="Primary navigation">
-                <a href="{% url 'main:show_main' %}#about">
-                    About
-                </a>
-                <a href="{% url 'main:show_main' %}#skills">
-                    Skills
-                </a>
-                <a
-                    href="{% url 'main:show_projects' %}"
-                    aria-current="page"
-                >
-                    Projects
-                </a>
-                <a href="{% url 'main:show_main' %}#education">
-                    Education
-                </a>
-                <a href="{% url 'main:show_experience' %}">
-                    Experience
-                </a>
-            </nav>
-        </div>
-    </header>
-
-    <main id="main-content">
-        <!-- Projects loaded from the database -->
+{% block content %}
+     <main id="main-content">
         <section
             class="portfolio-section projects-section projects-page"
             id="projects"
             aria-labelledby="projects-title"
         >
             <div class="container">
-                <header class="section-heading">
-                    <p class="section-label">Selected work</p>
+                <p class="section-kicker">Projects Along My Journey</p>
 
-                    <h1 id="projects-title">
-                        Projects that shaped my learning
-                    </h1>
+                <div class="project-header">
+                    <h1 id="projects-title">Projects</h1>
 
-                    <p class="section-description">
-                        Explore projects where I contributed to product
-                        development, interface implementation, data
-                        preparation, or artificial intelligence.
-                    </p>
-                </header>
+                    <a
+                        href="{% url 'main:create_project' %}"
+                        class="button project-add-button"
+                    >
+                        <span aria-hidden="true">+</span>
+                        Add Project
+                    </a>
+                </div>
+
+                <form
+                    method="get"
+                    action="{% url 'main:show_projects' %}"
+                    class="project-search"
+                >
+                    <input
+                        type="search"
+                        name="title"
+                        value="{{ title_query }}"
+                        placeholder="Search project's name"
+                        class="project-search__input"
+                        aria-label="Cari berdasarkan nama proyek"
+                    >
+                    <button type="submit" class="button">Cari</button>
+                </form>
 
                 <div class="projects-grid">
                     {% for project in project_list %}
                         <article
                             class="project-card{% if project.is_featured %} project-card--featured{% endif %}"
                         >
-                            <header class="project-header">
-                                <p
-                                    class="item-number"
-                                    aria-hidden="true"
+                            {% if project.image_path %}
+                                <a
+                                    class="project-preview{% if project.slug == 'rumputsehat-ews' %} project-preview--portrait{% endif %}"
+                                    href="{{ project.project_url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label="Open the deployed {{ project.title }} project"
                                 >
-                                    {{ forloop.counter|stringformat:"02d" }}
-                                </p>
-
-                                <p class="project-period">
-                                    <time
-                                        datetime="{{ project.started_on|date:'Y-m' }}"
+                                    <img
+                                        class="project-preview-image"
+                                        src="{% static project.image_path %}"
+                                        alt="Preview of the {{ project.title }} project"
+                                        loading="lazy"
                                     >
-                                        {{ project.started_on|date:"F Y" }}
-                                    </time>
 
-                                    {% if project.ended_on %}
-                                        -
-                                        <time
-                                            datetime="{{ project.ended_on|date:'Y-m' }}"
-                                        >
-                                            {{ project.ended_on|date:"F Y" }}
-                                        </time>
-                                    {% endif %}
-                                </p>
-                            </header>
+                                    <span class="project-preview-label">
+                                        View live project
+                                    </span>
+                                </a>
+                            {% endif %}
 
                             <h2 class="project-title">
                                 {{ project.title }}
@@ -130,26 +90,6 @@
                             <p class="project-context">
                                 {{ project.role }} - {{ project.context }}
                             </p>
-
-                            <!-- The image opens the deployed project -->
-                            <a
-                                class="project-preview{% if project.slug == 'rumputsehat-ews' %} project-preview--portrait{% endif %}"
-                                href="{{ project.project_url }}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="Open the deployed {{ project.title }} project"
-                            >
-                                <img
-                                    class="project-preview-image"
-                                    src="{% static project.image_path %}"
-                                    alt="Preview of the {{ project.title }} project"
-                                    loading="lazy"
-                                >
-
-                                <span class="project-preview-label">
-                                    View live project
-                                </span>
-                            </a>
 
                             <h3 class="project-contribution-title">
                                 My contributions
@@ -170,30 +110,36 @@
                                 {% endfor %}
                             </ul>
 
-                            {% if project.achievement %}
-                                <p class="project-result">
-                                    {{ project.achievement }}
-                                </p>
-                            {% endif %}
+                            <div class="project-card-actions">
+                                <div class="project-actions">
+                                    {% if project.project_url %}
+                                        <a
+                                            href="{{ project.project_url }}"
+                                            class="button"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Lihat Project
+                                        </a>
+                                    {% endif %}
+
+                                    {% include "components/project_delete_modal.html" with project=project %}
+                                </div>
+                            </div>
                         </article>
                     {% empty %}
-                        <p class="empty-state project-empty-state">
-                            No projects have been added yet.
-                        </p>
+                        {% if title_query %}
+                            <p class="empty-state">
+                                No projects matched "{{title_query}}".
+                            </p>
+                        {% else %}
+                            <p class="empty-state">
+                                No projects have been added yet.
+                            </p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
         </section>
     </main>
-
-    <!-- Page footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <p>
-                &copy; 2026 {{ name }}. Fakultas Ilmu Komputer,
-                Universitas Indonesia.
-            </p>
-        </div>
-    </footer>
-</body>
-</html>
+{% endblock content %}
