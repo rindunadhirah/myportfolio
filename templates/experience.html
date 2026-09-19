@@ -23,6 +23,49 @@
                 <p class="section-kicker">My journey so far</p>
                 <h1 id="experience-title">Experience</h1>
 
+                <!-- Add and filter experience data -->
+                <div class="experience-page-tools">
+                    <a
+                        href="{% url 'main:create_experience' %}"
+                        class="button"
+                    >
+                        <span aria-hidden="true">+</span>
+                        Add Experience
+                    </a>
+
+                    <form
+                        method="get"
+                        action="{% url 'main:show_experience' %}"
+                        class="experience-filter"
+                    >
+                        <div class="experience-filter-field">
+                            <label for="experience-category">
+                                Filter by type
+                            </label>
+
+                            <select
+                                name="category"
+                                id="experience-category"
+                            >
+                                <option value="">All categories</option>
+
+                                {% for value, label in experience_categories %}
+                                    <option
+                                        value="{{ value }}"
+                                        {% if category_query == value %}selected{% endif %}
+                                    >
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="button">
+                            Filter
+                        </button>
+                    </form>
+                </div>
+
                 <div class="experience-grid">
                     {% for experience in experience_list %}
                         <article class="experience-card">
@@ -72,6 +115,17 @@
                             {% else %}
                                 <p class="experience-status">Completed</p>
                             {% endif %}
+                            <!-- Edit this experience -->
+                            <div class="experience-card-actions">
+                                <a
+                                    href="{% url 'main:update_experience' experience.id %}"
+                                    class="button"
+                                >
+                                    Edit Experience
+                                </a>
+
+                                {% include "components/experience_delete_modal.html" with experience=experience %}
+                            </div>
                         </article>
                     {% empty %}
                         <p class="empty-state">
