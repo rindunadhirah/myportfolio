@@ -579,7 +579,8 @@ section[id] {
         "context preview"
         "contribution-title preview"
         "contributions preview"
-        "tags tags";
+        "tags tags"
+        "actions actions";
     column-gap: clamp(2rem, 5vw, 4.5rem);
     row-gap: 0.8rem;
     padding: clamp(1.5rem, 4vw, 3rem);
@@ -599,7 +600,8 @@ section[id] {
         "preview context"
         "preview contribution-title"
         "preview contributions"
-        "tags tags";
+        "tags tags"
+        "actions actions";
 }
 
 /* Place the project number beside its date */
@@ -1241,7 +1243,8 @@ section[id] {
             "preview"
             "contribution-title"
             "contributions"
-            "tags";
+            "tags"
+            "actions";
         padding: 1.5rem;
     }
 
@@ -1559,6 +1562,7 @@ section[id] {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
+    margin-top: 1.5rem;
 }
 
 .project-add-button span {
@@ -1599,50 +1603,21 @@ section[id] {
     border-color: var(--accent);
 }
 
-.project-actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    width: 100%;
-    margin-top: 1rem;
-}
-
-.project-actions .button {
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.project-card-actions {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    margin-bottom: 1rem;
-}
-
 .hide {
     display: none !important;
 }
 
-.project-actions .experience-status {
-    margin-top: 0;
-    margin-left: auto;
-    padding: 0;
-    background: transparent;
-    border-radius: 0;
+/* Place the delete action at the bottom right of the card */
+.project-card-actions {
+    grid-area: actions;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
 }
 
-.project-actions .experience-status .button-danger {
-    color: #fff;
-    background: #b42318;
-    border: 1px solid #b42318;
-}
-
-.project-actions .experience-status .button-danger:hover {
-    background: #912018;
-    border-color: #912018;
+.project-delete-action {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .project-delete-modal {
@@ -1766,4 +1741,11 @@ section[id] {
 .button-danger:hover {
     background: #912018;
     border-color: #912018;
+}
+
+/* Make the desktop layout slightly smaller */
+@media (min-width: 64rem) {
+    html {
+        font-size: 85%;
+    }
 }
