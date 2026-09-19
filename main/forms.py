@@ -165,3 +165,18 @@ class ExperienceForm(ModelForm):
                 },
             ),
         }
+
+    def clean(self):
+        """Check that the Experience date range is valid."""
+        cleaned_data = super().clean()
+        started_on = cleaned_data.get("started_on")
+        ended_on = cleaned_data.get("ended_on")
+
+        # The end date cannot be earlier than the start date
+        if started_on and ended_on and ended_on < started_on:
+            self.add_error(
+                "ended_on",
+                "End date cannot be earlier than start date.",
+            )
+
+        return cleaned_data

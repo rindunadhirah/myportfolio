@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils.html import escape
 from main.models import Experience, Project
+from main.forms import ExperienceForm
 
 
 class MainTest(TestCase):
@@ -69,6 +70,27 @@ class MainTest(TestCase):
         self.assertEqual(self.experience.category, "part-time")
         self.assertTrue(self.experience.is_ongoing)
         self.assertEqual(len(self.experience.responsibilities), 3)
+
+        def test_experience_end_date_cannot_be_before_start_date(self):
+            # Submit an invalid Experience date range
+            form = ExperienceForm(
+                data={
+                    "title": "Product Management Intern",
+                    "organization": "Test Organization",
+                    "description": "Test experience.",
+                    "responsibilities": '["Created documentation."]',
+                    "category": "internship",
+                    "thumbnail": "",
+                    "started_on": "2026-09-10",
+                    "ended_on": "2026-09-01",
+                }
+            )
+
+            self.assertFalse(form.is_valid())
+            self.assertIn(
+                "End date cannot be earlier than start date.",
+                form.errors["ended_on"],
+            )
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
