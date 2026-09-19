@@ -120,6 +120,168 @@ class MainTest(TestCase):
         self.assertNotContains(response, "Ongoing")
 
 
+class ExperienceWorkflowTest(TestCase):
+    def setUp(self):
+        # Start each test with an empty Experience table
+        Experience.objects.all().delete()
+
+        # Create one Experience for update, delete, and JSON tests
+        self.experience = Experience.objects.create(
+            title="Product Management Intern",
+            organization="Test Organization",
+            description="A test experience.",
+            responsibilities=[
+                "Created product documentation.",
+            ],
+            category="internship",
+            started_on=date(2026, 7, 1),
+            ended_on=date(2026, 8, 31),
+        )
+
+    def experience_form_data(self, **changes):
+        """Return valid form data with optional changes."""
+        data = {
+            "title": "Product Management Mentee",
+            "organization": "RISTEK Fasilkom UI",
+            "description": "Learned product management.",
+            "responsibilities": (
+                '["Prepared product requirements."]'
+            ),
+            "category": "program",
+            "thumbnail": "",
+            "started_on": "2026-07-01",
+            "ended_on": "2026-08-31",
+        }
+        data.update(changes)
+        return data
+
+    def test_experience_json_endpoint(self):
+        # Confirm that Experience data is serialized as JSON
+        response = self.client.get(
+            reverse("main:get_experiences_json")
+        )
+        data = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(
+            data[0]["fields"]["title"],
+            self.experience.title,
+        )
+
+    def test_experience_page_uses_deserialized_data(self):
+        # The page receives a list created from deserialized JSON
+        response = self.client.get(
+            reverse("main:show_experience")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(
+            response.context["experience_list"],
+            list,
+        )
+        self.assertContains(response, self.experience.title)
+
+    def test_create_experience(self):
+        # Submit valid data through ExperienceForm
+        response = self.client.post(
+            reverse("main:create_experience"),
+            data=self.experience_form_data(),
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("main:show_experience"),
+        )
+        self.assertTrue(
+            Experience.objects.filter(
+                title="Product Management Mentee",
+            ).exists()
+        )
+
+    def test_update_experience(self):
+        # Update the existing Experience using its UUID
+        response = self.client.post(
+            reverse(
+                "main:update_experience",
+                args=[self.experience.id],
+            ),
+            data=self.experience_form_data(
+                title="Updated Experience",
+            ),
+        )
+        self.experience.refresh_from_db()
+
+        self.assertRedirects(
+            response,
+            reverse("main:show_experience"),
+        )
+        self.assertEqual(
+            self.experience.title,
+            "Updated Experience",
+        )
+
+    def test_delete_experience_with_post(self):
+        # Delete is allowed through a POST request
+        response = self.client.post(
+            reverse(
+                "main:delete_experience",
+                args=[self.experience.id],
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("main:show_experience"),
+        )
+        self.assertFalse(
+            Experience.objects.filter(
+                id=self.experience.id,
+            ).exists()
+        )
+
+    def test_delete_experience_rejects_get(self):
+        # A GET request must not delete data
+        response = self.client.get(
+            reverse(
+                "main:delete_experience",
+                args=[self.experience.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(
+            Experience.objects.filter(
+                id=self.experience.id,
+            ).exists()
+        )
+
+    def test_filter_experience_by_category(self):
+        # Create another category to test the filter
+        Experience.objects.create(
+            title="Volunteer Experience",
+            organization="Test Community",
+            description="A volunteer experience.",
+            responsibilities=["Supported an event."],
+            category="volunteer",
+            started_on=date(2026, 6, 1),
+        )
+
+        response = self.client.get(
+            reverse("main:show_experience"),
+            {"category": "internship"},
+        )
+
+        self.assertContains(
+            response,
+            self.experience.title,
+        )
+        self.assertNotContains(
+            response,
+            "Volunteer Experience",
+        )
+
+
 class ProjectPageTest(TestCase):
     def setUp(self):
         # Start each test with only one project.
