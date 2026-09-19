@@ -167,12 +167,10 @@ class ProjectPageTest(TestCase):
         )
 
         response = self.client.get(reverse("main:show_projects"))
-        project_titles = list(
-            response.context["project_list"].values_list(
-                "title",
-                flat=True,
-            )
-        )
+        project_titles = [
+            project.title
+            for project in response.context["project_list"]
+        ]
 
         self.assertEqual(
             project_titles,

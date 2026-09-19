@@ -1,65 +1,32 @@
-{% load static %}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
+{% block meta %}
     <!-- Basic page information -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Description shown by search engines -->
     <meta
         name="description"
-        content="Portfolio of Rindu Maharani Nadhirah, a Computer Science undergraduate at Universitas Indonesia."
+        content="Experience of Rindu Maharani Nadhirah."
     >
 
     <title>Experience - {{ name }}</title>
+{% endblock meta %}
 
-    <!-- Connects to Google Fonts more quickly -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Loads the font currently used by the stylesheet -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap"
-        rel="stylesheet"
-    >
-
-    <!-- Loads the main stylesheet through Django -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
-
-<body>
-    <!-- Lets keyboard users skip the navigation -->
-    <a class="skip-link" href="#main-content">
-        Skip to main content
-    </a>
-
-    <!-- Main page navigation -->
-    <header class="site-header">
-        <div class="container nav-container">
-            <a href="{% url 'main:show_main' %}" class="brand">Nadhirah</a>
-
-            <nav class="site-nav" aria-label="Primary navigation">
-                <a href="{% url 'main:show_main' %}#about">About</a>
-                <a href="{% url 'main:show_main' %}#skills">Skills</a>
-                <a href="{% url 'main:show_projects' %}">Projects</a>
-                <a href="{% url 'main:show_main' %}#education">Education</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <section class="experience-section" id="experience">
+{% block content %}
+    <main id="main-content">
+        <section
+            class="experience-section"
+            id="experience"
+            aria-labelledby="experience-title"
+        >
             <div class="container">
+                <!-- Introduce the Experience page -->
                 <p class="section-kicker">My journey so far</p>
-                <h1>Experience</h1>
+                <h1 id="experience-title">Experience</h1>
 
                 <div class="experience-grid">
                     {% for experience in experience_list %}
                         <article class="experience-card">
-                            <!-- Show the experience type and date -->
+                            <!-- Show the type and date -->
                             <div class="experience-card-header">
                                 <span class="experience-category">
                                     {{ experience.get_category_display }}
@@ -82,11 +49,12 @@
 
                             <!-- Show the role and organization -->
                             <h2>{{ experience.title }}</h2>
+
                             <p class="experience-organization">
                                 {{ experience.organization }}
                             </p>
 
-                            <!-- Show each responsibility as a separate point -->
+                            <!-- Show responsibilities as points -->
                             {% if experience.responsibilities %}
                                 <ul class="experience-responsibilities">
                                     {% for responsibility in experience.responsibilities %}
@@ -114,14 +82,4 @@
             </div>
         </section>
     </main>
-
-    <!-- Page footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 
-                2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.
-            </p>
-        </div>
-    </footer>
-</body>
-</html>
+{% endblock content %}
