@@ -450,12 +450,47 @@ section[id] {
     }
 }
 
-/* Reveal project content when it enters the screen */
+/* Reveal the Projects and Experience pages when they open */
+.projects-page .section-heading,
+.projects-page .project-search,
+.projects-page .projects-grid,
+.experience-page .section-heading,
+.experience-page .experience-page-tools,
+.experience-page .experience-grid {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: hero-enter 550ms var(--ease-out) forwards;
+}
+
+/* Reveal the page controls after the heading */
+.projects-page .project-search,
+.experience-page .experience-page-tools {
+    animation-delay: 80ms;
+}
+
+/* Reveal the page cards last */
+.projects-page .projects-grid,
+.experience-page .experience-grid {
+    animation-delay: 160ms;
+}
+
+/* Use a simple fade when reduced motion is enabled */
+@media (prefers-reduced-motion: reduce) {
+    .projects-page .section-heading,
+    .projects-page .project-search,
+    .projects-page .projects-grid,
+    .experience-page .section-heading,
+    .experience-page .experience-page-tools,
+    .experience-page .experience-grid {
+        transform: none;
+        animation: hero-fade 200ms ease forwards;
+    }
+}
+
+/* Reveal the homepage project preview while scrolling */
 @supports (animation-timeline: view()) {
     .project-overview-section .section-heading,
-    .project-overview-grid,
-    .projects-page .section-heading,
-    .project-card {
+    .project-overview-grid {
         opacity: 0;
         transform: translateY(12px);
         animation: hero-enter 550ms var(--ease-out) both;
@@ -1332,9 +1367,7 @@ section[id] {
 
     /* Use a simple fade for project content */
     .project-overview-section .section-heading,
-    .project-overview-grid,
-    .projects-page .section-heading,
-    .project-card {
+    .project-overview-grid {
         transform: none;
         animation: hero-fade 200ms ease forwards;
         animation-timeline: auto;
@@ -1366,7 +1399,7 @@ section[id] {
     text-transform: uppercase;
 }
 
-.experience-section h1 {
+.experience-section > .container > h1 {
     margin: 0.4rem 0 2.5rem;
     color: var(--navy);
     font-size: clamp(3rem, 8vw, 6rem);
