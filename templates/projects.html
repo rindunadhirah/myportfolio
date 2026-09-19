@@ -16,17 +16,24 @@
 
 
 {% block content %}
-     <main id="main-content">
+    <main id="main-content">
         <section
             class="portfolio-section projects-section projects-page"
             id="projects"
             aria-labelledby="projects-title"
         >
             <div class="container">
-                <p class="section-kicker">Projects Along My Journey</p>
+                <header class="section-heading">
+                    <p class="section-label">Projects</p>
 
-                <div class="project-header">
-                    <h1 id="projects-title">Projects</h1>
+                    <h1 id="projects-title">
+                        Projects that shaped my learning
+                    </h1>
+
+                    <p class="section-description">
+                        Selected projects in web development, product
+                        development, and artificial intelligence.
+                    </p>
 
                     <a
                         href="{% url 'main:create_project' %}"
@@ -35,7 +42,7 @@
                         <span aria-hidden="true">+</span>
                         Add Project
                     </a>
-                </div>
+                </header>
 
                 <form
                     method="get"
@@ -111,20 +118,7 @@
                             </ul>
 
                             <div class="project-card-actions">
-                                <div class="project-actions">
-                                    {% if project.project_url %}
-                                        <a
-                                            href="{{ project.project_url }}"
-                                            class="button"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Lihat Project
-                                        </a>
-                                    {% endif %}
-
-                                    {% include "components/project_delete_modal.html" with project=project %}
-                                </div>
+                                {% include "components/project_delete_modal.html" with project=project %}
                             </div>
                         </article>
                     {% empty %}

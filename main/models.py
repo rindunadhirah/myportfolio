@@ -15,6 +15,8 @@ class Experience(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Record when the experience was added
+    created_at = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=255)
     organization = models.CharField(max_length=255, default="")
     description = models.TextField()

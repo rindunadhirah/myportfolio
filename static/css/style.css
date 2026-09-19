@@ -129,6 +129,22 @@ section[id] {
     -webkit-backdrop-filter: blur(16px);
 }
 
+/* Show feedback after adding, editing, or deleting data */
+.site-messages {
+    position: relative;
+    z-index: 90;
+    padding-top: 1rem;
+}
+
+.site-message {
+    padding: 0.85rem 1rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-left: 0.3rem solid var(--brown);
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
 /* Arrange the brand and navigation responsively */
 .nav-container {
     min-height: 4.75rem;
@@ -434,12 +450,47 @@ section[id] {
     }
 }
 
-/* Reveal project content when it enters the screen */
+/* Reveal the Projects and Experience pages when they open */
+.projects-page .section-heading,
+.projects-page .project-search,
+.projects-page .projects-grid,
+.experience-page .section-heading,
+.experience-page .experience-page-tools,
+.experience-page .experience-grid {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: hero-enter 550ms var(--ease-out) forwards;
+}
+
+/* Reveal the page controls after the heading */
+.projects-page .project-search,
+.experience-page .experience-page-tools {
+    animation-delay: 80ms;
+}
+
+/* Reveal the page cards last */
+.projects-page .projects-grid,
+.experience-page .experience-grid {
+    animation-delay: 160ms;
+}
+
+/* Use a simple fade when reduced motion is enabled */
+@media (prefers-reduced-motion: reduce) {
+    .projects-page .section-heading,
+    .projects-page .project-search,
+    .projects-page .projects-grid,
+    .experience-page .section-heading,
+    .experience-page .experience-page-tools,
+    .experience-page .experience-grid {
+        transform: none;
+        animation: hero-fade 200ms ease forwards;
+    }
+}
+
+/* Reveal the homepage project preview while scrolling */
 @supports (animation-timeline: view()) {
     .project-overview-section .section-heading,
-    .project-overview-grid,
-    .projects-page .section-heading,
-    .project-card {
+    .project-overview-grid {
         opacity: 0;
         transform: translateY(12px);
         animation: hero-enter 550ms var(--ease-out) both;
@@ -579,7 +630,8 @@ section[id] {
         "context preview"
         "contribution-title preview"
         "contributions preview"
-        "tags tags";
+        "tags tags"
+        "actions actions";
     column-gap: clamp(2rem, 5vw, 4.5rem);
     row-gap: 0.8rem;
     padding: clamp(1.5rem, 4vw, 3rem);
@@ -599,7 +651,8 @@ section[id] {
         "preview context"
         "preview contribution-title"
         "preview contributions"
-        "tags tags";
+        "tags tags"
+        "actions actions";
 }
 
 /* Place the project number beside its date */
@@ -1241,7 +1294,8 @@ section[id] {
             "preview"
             "contribution-title"
             "contributions"
-            "tags";
+            "tags"
+            "actions";
         padding: 1.5rem;
     }
 
@@ -1313,9 +1367,7 @@ section[id] {
 
     /* Use a simple fade for project content */
     .project-overview-section .section-heading,
-    .project-overview-grid,
-    .projects-page .section-heading,
-    .project-card {
+    .project-overview-grid {
         transform: none;
         animation: hero-fade 200ms ease forwards;
         animation-timeline: auto;
@@ -1347,7 +1399,7 @@ section[id] {
     text-transform: uppercase;
 }
 
-.experience-section h1 {
+.experience-section > .container > h1 {
     margin: 0.4rem 0 2.5rem;
     color: var(--navy);
     font-size: clamp(3rem, 8vw, 6rem);
@@ -1455,6 +1507,57 @@ section[id] {
     font-weight: 700;
 }
 
+/* Arrange the Experience page controls */
+.experience-page-tools {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    max-width: 64rem;
+    margin-bottom: 2rem;
+}
+
+.experience-filter {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.experience-filter-field {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.experience-filter label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.experience-filter select {
+    min-height: 2.75rem;
+    padding: 0.6rem 2.5rem 0.6rem 0.85rem;
+    color: var(--navy);
+    background-color: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font: inherit;
+}
+
+/* Place card actions at the bottom right */
+.experience-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.experience-card-actions .button {
+    font-size: 0.85rem;
+}
+
 .empty-state {
     color: var(--text-muted);
 }
@@ -1559,6 +1662,7 @@ section[id] {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
+    margin-top: 1.5rem;
 }
 
 .project-add-button span {
@@ -1599,50 +1703,21 @@ section[id] {
     border-color: var(--accent);
 }
 
-.project-actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    width: 100%;
-    margin-top: 1rem;
-}
-
-.project-actions .button {
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.project-card-actions {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    margin-bottom: 1rem;
-}
-
 .hide {
     display: none !important;
 }
 
-.project-actions .experience-status {
-    margin-top: 0;
-    margin-left: auto;
-    padding: 0;
-    background: transparent;
-    border-radius: 0;
+/* Place the delete action at the bottom right of the card */
+.project-card-actions {
+    grid-area: actions;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
 }
 
-.project-actions .experience-status .button-danger {
-    color: #fff;
-    background: #b42318;
-    border: 1px solid #b42318;
-}
-
-.project-actions .experience-status .button-danger:hover {
-    background: #912018;
-    border-color: #912018;
+.project-delete-action {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .project-delete-modal {
@@ -1766,4 +1841,11 @@ section[id] {
 .button-danger:hover {
     background: #912018;
     border-color: #912018;
+}
+
+/* Make the desktop layout slightly smaller */
+@media (min-width: 64rem) {
+    html {
+        font-size: 85%;
+    }
 }
