@@ -187,6 +187,7 @@ class ExperienceWorkflowTest(TestCase):
         response = self.client.post(
             reverse("main:create_experience"),
             data=self.experience_form_data(),
+            follow=True,
         )
 
         self.assertRedirects(
@@ -197,6 +198,10 @@ class ExperienceWorkflowTest(TestCase):
             Experience.objects.filter(
                 title="Product Management Mentee",
             ).exists()
+        )
+        self.assertContains(
+            response,
+            "Experience added successfully.",
         )
 
     def test_update_experience(self):

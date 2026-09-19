@@ -129,6 +129,22 @@ section[id] {
     -webkit-backdrop-filter: blur(16px);
 }
 
+/* Show feedback after adding, editing, or deleting data */
+.site-messages {
+    position: relative;
+    z-index: 90;
+    padding-top: 1rem;
+}
+
+.site-message {
+    padding: 0.85rem 1rem;
+    color: var(--navy);
+    background-color: var(--nude-cream);
+    border-left: 0.3rem solid var(--brown);
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
 /* Arrange the brand and navigation responsively */
 .nav-container {
     min-height: 4.75rem;

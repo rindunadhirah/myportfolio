@@ -33,7 +33,22 @@
                 <a href="{% url 'main:show_experience' %}">Experience</a>
             </nav>
         </div>
-</header>
+    </header>
+    <!-- Show feedback after form actions -->
+    {% if messages %}
+        <div
+            class="site-messages container"
+            aria-live="polite"
+        >
+            {% for message in messages %}
+                <p
+                    class="site-message{% if message.tags %} site-message--{{ message.tags }}{% endif %}"
+                >
+                    {{ message }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
     {% block content %}
     {% endblock content %}
 
