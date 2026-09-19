@@ -86,6 +86,31 @@ Make sure Python 3 and Git are installed on your computer.
 
 7. Open `http://127.0.0.1:8000/` in a browser.
 
+## Running Checks and Tests
+
+Activate the virtual environment, then run:
+
+```powershell
+python manage.py check
+python manage.py test main
+```
+
+`check` verifies the Django configuration. `test main` runs the automated tests for the portfolio application.
+
+## Main Routes
+
+| Route | Purpose |
+|---|---|
+| `/` | Display the main portfolio page |
+| `/projects/` | Display and search projects |
+| `/projects/add/` | Create a project |
+| `/api/projects/` | Return project data in JSON |
+| `/experience/` | Display and filter experiences |
+| `/experience/add/` | Create an experience |
+| `/experience/<id>/edit/` | Update an experience |
+| `/experience/<id>/delete/` | Delete an experience |
+| `/api/experiences/` | Return experience data in JSON |
+
 ## Weekly Progress
 
 ### Week 1 - Tutorials 0 and 1
@@ -119,6 +144,19 @@ Make sure Python 3 and Git are installed on your computer.
 - Added empty states for pages that do not have data.
 - Added tests for page access, templates, database content, and empty states.
 - Kept the new pages responsive and consistent with the original portfolio design.
+
+### Week 4 - Tutorial 3 and Assignment 3
+
+- Refactored repeated HTML structures to use the shared `base.html` template.
+- Added a `ProjectForm` and an `ExperienceForm` using Django ModelForm.
+- Added pages for creating and updating experience data.
+- Added delete confirmation buttons for projects and experiences.
+- Added JSON endpoints for project and experience data.
+- Serialized database objects into JSON and deserialized the data before displaying it.
+- Added project search and experience category filtering.
+- Added validation to prevent an experience from ending before it starts.
+- Added success messages after creating, updating, or deleting data.
+- Added tests for experience creation, updates, deletion, filtering, JSON delivery, and form validation.
 
 ## Reflective Questions
 
@@ -162,6 +200,24 @@ Make sure Python 3 and Git are installed on your computer.
 
    For example, when I created the `Project` model, I ran `python manage.py makemigrations` to create its migration file. I then ran `python manage.py migrate` to create the project table in the database. Both commands are needed because the first command prepares the instructions and the second command applies them.
 
+### Assignment 3
+
+1. Django ModelForm connects a form directly to a Django model. It creates form fields and basic validation rules based on the model fields. This reduces repeated code because I do not need to write every HTML input, read every value from `request.POST`, or create the model object manually.
+
+   ModelForm can still be customized. I added labels, placeholders, date inputs, and a validation rule that prevents the end date from being earlier than the start date.
+
+   `{% csrf_token %}` protects forms that change data using a POST request. Django checks the token to confirm that the form came from my website. This prevents another website from sending an unwanted request using a visitor's active session.
+
+2. JSON is often preferred because it is shorter and easier to process than XML. It represents data using objects, arrays, strings, numbers, Boolean values, and null values. These structures are easy to use in both Python and JavaScript.
+
+   XML usually needs opening and closing tags, which makes the data longer. JSON uses less text and is widely supported by modern APIs and web frameworks. XML is still useful when a system needs features such as strict schemas or namespaces, but JSON is simpler for my portfolio data.
+
+3. When the JSON endpoint receives a request, the view retrieves Experience objects from the database as a QuerySet. If a category is selected, the QuerySet is filtered first. Django then uses `serializers.serialize()` to convert the model objects into JSON text.
+
+   The view returns the JSON using an `HttpResponse` with the `application/json` content type. The Experience page reads this response and uses `serializers.deserialize()` to convert the JSON back into Experience objects before sending them to the template.
+
+   Serialization is required because Django model objects are Python objects and cannot be sent directly through an HTTP response. They must first be converted into a transferable data format such as JSON.
+
 ## AI Use and Prompt History
 
 ### AI Disclosure
@@ -190,6 +246,10 @@ The following table contains shortened versions of the main prompts used during 
 | Question migration choices | Explain when I should create a new migration and whether every data change needs one. | I learned the difference between changing the database structure and changing existing data. |
 | Check the assignment requirement | Show proof from the assignment about where the Experience section should appear. | I checked the original wording and used a Journey card that links to the full Experience page. |
 | Correct experience information | Remove the PBP teaching assistant example because it is not in my CV. Use only my real experience. | I rejected the incorrect example, checked my CV, and kept only information that represents my experience. |
+| Plan Assignment 3 | Create a roadmap for the required Experience form, JSON delivery, Git commits, tests, and documentation. | I compared the plan with the rubric and completed each feature in a separate step. |
+| Build the Experience workflow | Guide me through creating, updating, deleting, filtering, serializing, and deserializing Experience data. | I entered the code myself, tested each action, and kept the interface consistent with my portfolio. |
+| Debug automated tests | Explain why the JSON test found five records and why `self.experience` was missing. | I learned that data migrations also run in the test database and that each test needs an isolated setup. |
+| Improve Git practice | Plan Conventional Commit messages and decide which small changes can be grouped together. | I grouped related changes into clear commits instead of creating one commit for every small edit. |
 
 ### AI Limitations and My Manual Fixes
 
@@ -203,5 +263,9 @@ The AI was useful, but its answers were not always correct or suitable for my as
 - The AI suggested an Experience preview before proving that the assignment required one. I rechecked the assignment instructions and chose a journey card that better matched my portfolio.
 - Some project image styles made one of my project's image too tall or gave it the wrong frame size. I tested the page and adjusted the image container until all project cards had a consistent size.
 - I checked every model, migration, template, and test before committing instead of accepting the generated code immediately.
+- The AI initially suggested replacing complete files even when only a few lines needed to change. I asked for targeted additions and replacements to reduce unnecessary changes.
+- A JSON endpoint test initially expected one Experience record, but the test database also loaded four records from a data migration. I corrected the test setup so each test starts with isolated data.
+- While editing the test setup, a duplicated `setUp()` definition caused several tests to fail. I checked the traceback, corrected the indentation, and reran all tests.
+- Some suggested Projects page styles changed too much of my original design. I kept the existing visual style and changed only the heading and card actions that needed improvement.
 
 In conclusion, AI helped me with ideas and explanations, but I still check the original assignment, confirm facts, understand the code, and test the result myself.
