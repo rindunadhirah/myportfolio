@@ -3,9 +3,6 @@
 
 {% block meta %}
     <!-- Basic page information -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <meta
         name="description"
         content="Selected projects by Rindu Maharani Nadhirah."
@@ -34,14 +31,16 @@
                         Selected projects in web development, product
                         development, and artificial intelligence.
                     </p>
-
-                    <a
-                        href="{% url 'main:create_project' %}"
-                        class="button project-add-button"
-                    >
-                        <span aria-hidden="true">+</span>
-                        Add Project
-                    </a>
+                    
+                    {% if user.is_superuser %}
+                        <a
+                            href="{% url 'main:create_project' %}"
+                            class="button project-add-button"
+                        >
+                            <span aria-hidden="true">+</span>
+                            Add Project
+                        </a>
+                    {% endif %}
                 </header>
 
                 <form
@@ -118,7 +117,10 @@
                             </ul>
 
                             <div class="project-card-actions">
-                                {% include "components/project_delete_modal.html" with project=project %}
+                                {% include "components/project_star.html" with project=project %}
+                                {% if user.is_superuser %}
+                                    {% include "components/project_delete_modal.html" with project=project %}
+                                {% endif %}
                             </div>
                         </article>
                     {% empty %}

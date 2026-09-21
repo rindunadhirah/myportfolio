@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -69,6 +70,12 @@ class Project(models.Model):
     achievement = models.CharField(max_length=255, blank=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Tambahkan field berikut: satu proyek bisa di-star banyak pengguna,
+    # dan satu pengguna bisa mem-star banyak proyek
+    starred_by = models.ManyToManyField(
+        User, related_name="starred_projects", blank=True
+    )
 
     class Meta:
         ordering = ["-started_on", "title"]

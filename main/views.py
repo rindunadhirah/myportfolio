@@ -3,13 +3,20 @@ from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.decorators import login_required 
+from django.core.exceptions import PermissionDenied        
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
+import datetime
+
 
 def show_main(request):
     """Display the main portfolio page."""
+    last_login = request.COOKIES.get('last_login', 'No active login session / Cookie not found')
     context = {
         "name": "Rindu Maharani Nadhirah",
         "npm": "2506587131",
@@ -20,6 +27,7 @@ def show_main(request):
             "product management, and business development."
         ),
         "project_preview_list": Project.objects.all()[:3],
+        "last_login": last_login,
     }
     return render(request, "index.html", context)
 
@@ -33,7 +41,9 @@ def get_projects_json(request):
     if title_query:
         projects = projects.filter(title__icontains=title_query)
 
-    projects_json = serializers.serialize("json", projects)
+    projects_json = serializers.serialize(
+        "json", projects, use_natural_foreign_keys=True  # Tambahkan argumen ini
+    )
     return HttpResponse(
         projects_json,
         content_type="application/json",
@@ -58,7 +68,13 @@ def show_projects(request):
     return render(request, "projects.html", context)
 
 
+@login_required(login_url="/login/")
 def create_project(request):
+    # Cek apakah akun yang sedang login adalah superuser (admin/kamu);
+    # kalau bukan, hentikan permintaannya dengan 403.
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     """Create a project using ProjectForm."""
     form = ProjectForm(request.POST or None)
 
@@ -77,7 +93,13 @@ def create_project(request):
     return render(request, "projects_form.html", context)
 
 
+@login_required(login_url="/login/")
 def delete_project(request, project_id):
+    # Cek apakah akun yang sedang login adalah superuser (admin/kamu);
+    # kalau bukan, hentikan permintaannya dengan 403.
+    if not request.user.is_superuser:
+        raise PermissionDenied
+    
     """Delete a project after a POST request."""
     project = get_object_or_404(Project, pk=project_id)
 
@@ -201,3 +223,58 @@ def delete_experience(request, experience_id):
         "Experience deleted successfully.",
     )
     return redirect("main:show_experience")
+
+
+def register(request):
+    form = UserCreationForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Account created successfully. Please log in.")
+        return redirect("main:login")
+
+    context = {
+        "name": "Nadhirah",
+        "form": form,
+    }
+    return render(request, "register.html", context)
+
+
+def login_user(request):
+    form = AuthenticationForm(request, data=request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
+        login(request, user)
+        response = redirect("main:show_main")
+        response.set_cookie('last_login', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        return response
+
+    context = {
+        "name": "Nadhirah",
+        "form": form,
+    }
+    return render(request, "login.html", context)
+
+
+def logout_user(request):
+    logout(request)
+    response = redirect("main:show_main")
+    response.delete_cookie('last_login')
+    return response
+
+
+# Tanpa cek is_superuser: semua akun yang sudah login boleh memberi star
+@login_required(login_url="/login/")
+def toggle_star(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+
+    if request.method == "POST":
+        # Kalau akun ini sudah pernah memberi star, batalkan star-nya.
+        # Kalau belum, tambahkan star.
+        if request.user in project.starred_by.all():
+            project.starred_by.remove(request.user)
+        else:
+            project.starred_by.add(request.user)
+
+    return redirect("main:show_projects")
