@@ -14,6 +14,36 @@ from django.views.decorators.http import require_POST
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
+# Only expose public portfolio fields through JSON
+PROJECT_PUBLIC_FIELDS = (
+    "title",
+    "slug",
+    "summary",
+    "context",
+    "role",
+    "contributions",
+    "technologies",
+    "project_url",
+    "image_path",
+    "started_on",
+    "ended_on",
+    "achievement",
+    "is_featured",
+    "created_at",
+)
+
+EXPERIENCE_PUBLIC_FIELDS = (
+    "created_at",
+    "title",
+    "organization",
+    "description",
+    "responsibilities",
+    "category",
+    "thumbnail",
+    "started_on",
+    "ended_on",
+)
+
 
 def user_is_editor(user):
     """Check whether a user belongs to the Editor group."""
@@ -63,8 +93,9 @@ def get_projects_json(request):
     projects_json = serializers.serialize(
         "json",
         projects,
-        use_natural_foreign_keys=True,
+        fields=PROJECT_PUBLIC_FIELDS,
     )
+
     return HttpResponse(
         projects_json,
         content_type="application/json",
@@ -201,7 +232,9 @@ def get_experiences_json(request):
     experiences_json = serializers.serialize(
         "json",
         experiences,
+        fields=EXPERIENCE_PUBLIC_FIELDS,
     )
+
     return HttpResponse(
         experiences_json,
         content_type="application/json",
