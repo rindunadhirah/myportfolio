@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -42,15 +43,27 @@ def show_main(request):
 
 # Project data delivery
 def get_projects_json(request):
-    """Return project data in JSON format."""
+    """Return filtered Project data in JSON format."""
     title_query = request.GET.get("title", "").strip()
+    role_query = request.GET.get("role", "").strip()
     projects = Project.objects.all()
 
+    # Search by title
     if title_query:
-        projects = projects.filter(title__icontains=title_query)
+        projects = projects.filter(
+            title__icontains=title_query,
+        )
+
+    # Filter by role
+    if role_query:
+        projects = projects.filter(
+            role=role_query,
+        )
 
     projects_json = serializers.serialize(
-        "json", projects, use_natural_foreign_keys=True  # Tambahkan argumen ini
+        "json",
+        projects,
+        use_natural_foreign_keys=True,
     )
     return HttpResponse(
         projects_json,
@@ -73,6 +86,11 @@ def show_projects(request):
         "project_list": project_list,
         "title_query": request.GET.get("title", "").strip(),
         "is_editor": user_is_editor(request.user),
+        "role_query": request.GET.get("role", "").strip(),
+        "project_roles": Project.objects.order_by("role").values_list(
+            "role",
+            flat=True,
+        ).distinct(),
     }
     return render(request, "projects.html", context)
 
@@ -162,10 +180,19 @@ def delete_project(request, project_id):
 
 # Experience data delivery
 def get_experiences_json(request):
-    """Return experience data in JSON format."""
+    """Return filtered Experience data in JSON format."""
+    search_query = request.GET.get("search", "").strip()
     category_query = request.GET.get("category", "").strip()
     experiences = Experience.objects.all()
 
+    # Search by role title or organization
+    if search_query:
+        experiences = experiences.filter(
+            Q(title__icontains=search_query)
+            | Q(organization__icontains=search_query)
+        )
+
+    # Filter by experience type
     if category_query:
         experiences = experiences.filter(
             category=category_query,
@@ -198,6 +225,7 @@ def show_experience(request):
         "name": "Rindu Maharani Nadhirah",
         "experience_list": experience_list,
         "experience_categories": Experience.EXPERIENCE_CHOICES,
+        "search_query": request.GET.get("search", "").strip(),
         "category_query": request.GET.get(
             "category",
             "",

@@ -45,11 +45,26 @@
                         </a>
                     {% endif %}
 
+                    <!-- Search and filter experiences -->
                     <form
                         method="get"
                         action="{% url 'main:show_experience' %}"
                         class="experience-filter"
                     >
+                        <div class="experience-filter-field">
+                            <label for="experience-search">
+                                Search
+                            </label>
+
+                            <input
+                                type="search"
+                                name="search"
+                                id="experience-search"
+                                value="{{ search_query }}"
+                                placeholder="Search roles or organizations"
+                            >
+                        </div>
+
                         <div class="experience-filter-field">
                             <label for="experience-category">
                                 Filter by type
@@ -73,7 +88,7 @@
                         </div>
 
                         <button type="submit" class="button">
-                            Filter
+                            Apply
                         </button>
                     </form>
                 </div>
@@ -146,9 +161,15 @@
                             </div>
                         </article>
                     {% empty %}
-                        <p class="empty-state">
-                            No experience has been added yet.
-                        </p>
+                        {% if search_query or category_query %}
+                            <p class="empty-state">
+                                No experiences matched your search and filter.
+                            </p>
+                        {% else %}
+                            <p class="empty-state">
+                                No experience has been added yet.
+                            </p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>

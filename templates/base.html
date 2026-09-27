@@ -25,20 +25,42 @@
         <div class="container nav-container">
             <a href="{% url 'main:show_main' %}" class="brand">Nadhirah</a>
 
-            <nav class="site-nav" aria-label="Primary navigation">
-                <a href="{% url 'main:show_main' %}#about">About</a>
-                <a href="{% url 'main:show_main' %}#skills">Skills</a>
-                <a href="{% url 'main:show_projects' %}">Projects</a>
-                <a href="{% url 'main:show_main' %}#education">Education</a>
-                <a href="{% url 'main:show_experience' %}">Experience</a>
-                {% if user.is_authenticated %}
-                    <span class="nav-user">{{ user.username }}</span>
-                    <a href="{% url 'main:logout' %}">Logout</a>
-                {% else %}
-                    <a href="{% url 'main:login' %}">Login</a>
-                    <a href="{% url 'main:register' %}">Register</a>
-                {% endif %}
-            </nav>
+            <div class="nav-actions">
+                <!-- Keep the main portfolio links visible -->
+                <nav class="site-nav" aria-label="Primary navigation">
+                    <a href="{% url 'main:show_main' %}#about">About</a>
+                    <a href="{% url 'main:show_main' %}#skills">Skills</a>
+                    <a href="{% url 'main:show_projects' %}">Projects</a>
+                    <a href="{% url 'main:show_main' %}#education">Education</a>
+                    <a href="{% url 'main:show_experience' %}">Experience</a>
+                </nav>
+
+                <!-- Place account actions inside a compact menu -->
+                <details class="account-menu">
+                    <summary
+                        class="account-menu-toggle"
+                        aria-label="Account menu"
+                    >
+                        <span class="account-menu-icon" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </summary>
+
+                    <div class="account-menu-panel">
+                        {% if user.is_authenticated %}
+                            <span class="account-menu-user">
+                                {{ user.username }}
+                            </span>
+                            <a href="{% url 'main:logout' %}">Logout</a>
+                        {% else %}
+                            <a href="{% url 'main:login' %}">Login</a>
+                            <a href="{% url 'main:register' %}">Register</a>
+                        {% endif %}
+                    </div>
+                </details>
+            </div>
         </div>
     </header>
     <!-- Show feedback after form actions -->
