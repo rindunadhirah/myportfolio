@@ -15,6 +15,7 @@ from main.views import (
     login_user,
     logout_user,
     toggle_star,
+    toggle_experience_star,
 )
 app_name = "main"
 
@@ -28,6 +29,7 @@ urlpatterns = [
     path("experience/add/", create_experience, name="create_experience"),
     path("experience/<uuid:experience_id>/edit/", update_experience, name="update_experience"),
     path("experience/<uuid:experience_id>/delete/", delete_experience, name="delete_experience"),
+    path("experience/<uuid:experience_id>/star/", toggle_experience_star, name="toggle_experience_star"),
     path("api/experiences/", get_experiences_json, name="get_experiences_json"),
     path("register/", register, name="register"),
     path("login/", login_user, name="login"),

@@ -251,6 +251,32 @@ def delete_experience(request, experience_id):
     return redirect("main:show_experience")
 
 
+@login_required(login_url="main:login")
+@require_POST
+def toggle_experience_star(request, experience_id):
+    """Add or remove the current user's Experience star."""
+    experience = get_object_or_404(
+        Experience,
+        pk=experience_id,
+    )
+
+    # Toggle one star for the current user
+    if experience.starred_by.filter(pk=request.user.pk).exists():
+        experience.starred_by.remove(request.user)
+        messages.success(
+            request,
+            f"Removed your star from {experience.title}.",
+        )
+    else:
+        experience.starred_by.add(request.user)
+        messages.success(
+            request,
+            f"Starred {experience.title}.",
+        )
+
+    return redirect("main:show_experience")
+
+
 def register(request):
     form = UserCreationForm(request.POST or None)
 
