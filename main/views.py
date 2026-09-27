@@ -72,18 +72,18 @@ def show_projects(request):
         "name": "Rindu Maharani Nadhirah",
         "project_list": project_list,
         "title_query": request.GET.get("title", "").strip(),
+        "is_editor": user_is_editor(request.user),
     }
     return render(request, "projects.html", context)
 
 
-@login_required(login_url="/login/")
+@login_required(login_url="main:login")
 def create_project(request):
-    # Cek apakah akun yang sedang login adalah superuser (admin/kamu);
-    # kalau bukan, hentikan permintaannya dengan 403.
+    """Create a project using ProjectForm."""
+    # Only the portfolio owner can create project data
     if not request.user.is_superuser:
         raise PermissionDenied
-    
-    """Create a project using ProjectForm."""
+
     form = ProjectForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -97,27 +97,66 @@ def create_project(request):
     context = {
         "name": "Rindu Maharani Nadhirah",
         "form": form,
+        "form_title": "Add Project",
+        "submit_label": "Add Project",
     }
     return render(request, "projects_form.html", context)
 
 
-@login_required(login_url="/login/")
-def delete_project(request, project_id):
-    # Cek apakah akun yang sedang login adalah superuser (admin/kamu);
-    # kalau bukan, hentikan permintaannya dengan 403.
-    if not request.user.is_superuser:
+@login_required(login_url="main:login")
+def update_project(request, project_id):
+    """Update an existing project."""
+    # Editors and the portfolio owner can update project data
+    if not (
+        request.user.is_superuser
+        or user_is_editor(request.user)
+    ):
         raise PermissionDenied
-    
-    """Delete a project after a POST request."""
-    project = get_object_or_404(Project, pk=project_id)
 
-    if request.method == "POST":
-        project.delete()
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+    )
+    form = ProjectForm(
+        request.POST or None,
+        instance=project,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
         messages.success(
             request,
-            "Project deleted successfully.",
+            "Project updated successfully.",
         )
+        return redirect("main:show_projects")
 
+    context = {
+        "name": "Rindu Maharani Nadhirah",
+        "form": form,
+        "form_title": "Edit Project",
+        "submit_label": "Save Changes",
+    }
+    return render(request, "projects_form.html", context)
+
+
+@login_required(login_url="main:login")
+@require_POST
+def delete_project(request, project_id):
+    """Delete a project using a POST request."""
+    # Only the portfolio owner can delete project data
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+    )
+    project.delete()
+
+    messages.success(
+        request,
+        "Project deleted successfully.",
+    )
     return redirect("main:show_projects")
 
 
@@ -260,20 +299,15 @@ def toggle_experience_star(request, experience_id):
         pk=experience_id,
     )
 
-    # Toggle one star for the current user
+    # Remove an existing star or add a new star
     if experience.starred_by.filter(pk=request.user.pk).exists():
         experience.starred_by.remove(request.user)
-        messages.success(
-            request,
-            f"Removed your star from {experience.title}.",
-        )
+        message = f"Removed your star from {experience.title}."
     else:
         experience.starred_by.add(request.user)
-        messages.success(
-            request,
-            f"Starred {experience.title}.",
-        )
+        message = f"Starred {experience.title}."
 
+    messages.success(request, message)
     return redirect("main:show_experience")
 
 
@@ -316,17 +350,22 @@ def logout_user(request):
     return response
 
 
-# Tanpa cek is_superuser: semua akun yang sudah login boleh memberi star
-@login_required(login_url="/login/")
-def toggle_star(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
+@login_required(login_url="main:login")
+@require_POST
+def toggle_project_star(request, project_id):
+    """Add or remove the current user's Project star."""
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+    )
 
-    if request.method == "POST":
-        # Kalau akun ini sudah pernah memberi star, batalkan star-nya.
-        # Kalau belum, tambahkan star.
-        if request.user in project.starred_by.all():
-            project.starred_by.remove(request.user)
-        else:
-            project.starred_by.add(request.user)
+    # Remove an existing star or add a new star
+    if project.starred_by.filter(pk=request.user.pk).exists():
+        project.starred_by.remove(request.user)
+        message = f"Removed your star from {project.title}."
+    else:
+        project.starred_by.add(request.user)
+        message = f"Starred {project.title}."
 
+    messages.success(request, message)
     return redirect("main:show_projects")
