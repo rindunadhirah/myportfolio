@@ -1,17 +1,25 @@
+import datetime
+
 from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.decorators import login_required 
-from django.core.exceptions import PermissionDenied        
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
-import datetime
+
+def user_is_editor(user):
+    """Check whether a user belongs to the Editor group."""
+    return (
+        user.is_authenticated
+        and user.groups.filter(name="Editor").exists()
+    )
 
 
 def show_main(request):
@@ -155,13 +163,19 @@ def show_experience(request):
             "category",
             "",
         ).strip(),
+        "is_editor": user_is_editor(request.user),
     }
     return render(request, "experience.html", context)
 
 
 # Experience form actions
+@login_required(login_url="main:login")
 def create_experience(request):
     """Create an experience using ExperienceForm."""
+    # Only the portfolio owner can create experience data
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -181,8 +195,16 @@ def create_experience(request):
     return render(request, "experience_form.html", context)
 
 
+@login_required(login_url="main:login")
 def update_experience(request, experience_id):
     """Update an existing experience."""
+    # Editors and the portfolio owner can update experience data
+    if not (
+        request.user.is_superuser
+        or user_is_editor(request.user)
+    ):
+        raise PermissionDenied
+
     experience = get_object_or_404(
         Experience,
         pk=experience_id,
@@ -209,9 +231,13 @@ def update_experience(request, experience_id):
     return render(request, "experience_form.html", context)
 
 
+@login_required(login_url="main:login")
 @require_POST
 def delete_experience(request, experience_id):
     """Delete an experience using a POST request."""
+    # Only the portfolio owner can delete experience data
+    if not request.user.is_superuser:
+        raise PermissionDenied
     experience = get_object_or_404(
         Experience,
         pk=experience_id,

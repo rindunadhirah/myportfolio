@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 from django.utils.html import escape
@@ -124,6 +125,12 @@ class ExperienceWorkflowTest(TestCase):
     def setUp(self):
         # Start each test with an empty Experience table
         Experience.objects.all().delete()
+        # Use the portfolio owner for existing CRUD tests
+        self.owner = User.objects.create_superuser(
+            username="portfolio-owner",
+            password="test-password",
+        )
+        self.client.force_login(self.owner)
 
         # Create one Experience for update, delete, and JSON tests
         self.experience = Experience.objects.create(
