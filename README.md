@@ -158,6 +158,20 @@ python manage.py test main
 - Added success messages after creating, updating, or deleting data.
 - Added tests for experience creation, updates, deletion, filtering, JSON delivery, and form validation.
 
+### Week 5 - Tutorial 4 and Assignment 4
+
+- Added account registration, login, logout, sessions, and a last login cookie.
+- Added four access levels for visitors, regular users, Editors, and the portfolio owner.
+- Used Django authentication and an Editor group to check user access.
+- Restricted create, update, and delete actions on the server.
+- Hid action buttons when a user does not have permission to use them.
+- Added project and experience star features using a many-to-many relationship.
+- Required POST requests and CSRF protection for star actions.
+- Added project and experience search and filter controls.
+- Added an account menu to keep the navigation bar organized.
+- Limited public JSON fields so account and star information is not exposed.
+- Added automated tests for authentication, permissions, stars, JSON safety, sessions, cookies, search, and filters.
+
 ## Reflective Questions
 
 ### Assignment 1
@@ -250,6 +264,9 @@ The following table contains shortened versions of the main prompts used during 
 | Build the Experience workflow | Guide me through creating, updating, deleting, filtering, serializing, and deserializing Experience data. | I entered the code myself, tested each action, and kept the interface consistent with my portfolio. |
 | Debug automated tests | Explain why the JSON test found five records and why `self.experience` was missing. | I learned that data migrations also run in the test database and that each test needs an isolated setup. |
 | Improve Git practice | Plan Conventional Commit messages and decide which small changes can be grouped together. | I grouped related changes into clear commits instead of creating one commit for every small edit. |
+| Plan Assignment 4 | Create a roadmap for authentication, access roles, stars, security, tests, Git commits, and documentation. | I compared the roadmap with the rubric and implemented each requirement gradually. |
+| Align user permissions | Give Projects and Experience the same abilities for visitors, regular users, Editors, and the portfolio owner. | I checked each role and kept create, update, delete, and star permissions consistent. |
+| Test access control | Add tests for user roles, stars, POST requests, CSRF, JSON safety, sessions, cookies, search, and filters. | I ran all 32 tests and corrected indentation problems before committing. |
 
 ### AI Limitations and My Manual Fixes
 
@@ -267,5 +284,8 @@ The AI was useful, but its answers were not always correct or suitable for my as
 - A JSON endpoint test initially expected one Experience record, but the test database also loaded four records from a data migration. I corrected the test setup so each test starts with isolated data.
 - While editing the test setup, a duplicated `setUp()` definition caused several tests to fail. I checked the traceback, corrected the indentation, and reran all tests.
 - Some suggested Projects page styles changed too much of my original design. I kept the existing visual style and changed only the heading and card actions that needed improvement.
+- The AI initially placed some test methods inside other test methods because of incorrect indentation. I checked the test count, corrected the indentation, and confirmed that all tests were discovered.
+- I questioned how the Editor role should work instead of applying it immediately. I checked the assignment again and confirmed that Django Group membership is allowed.
+- The account menu initially made the navigation bar too wide. I tested the page and adjusted the layout so the main navigation remained compact.
 
 In conclusion, AI helped me with ideas and explanations, but I still check the original assignment, confirm facts, understand the code, and test the result myself.
