@@ -1,17 +1,56 @@
+import datetime
+
 from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.decorators import login_required 
-from django.core.exceptions import PermissionDenied        
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
-import datetime
+# Only expose public portfolio fields through JSON
+PROJECT_PUBLIC_FIELDS = (
+    "title",
+    "slug",
+    "summary",
+    "context",
+    "role",
+    "contributions",
+    "technologies",
+    "project_url",
+    "image_path",
+    "started_on",
+    "ended_on",
+    "achievement",
+    "is_featured",
+    "created_at",
+)
+
+EXPERIENCE_PUBLIC_FIELDS = (
+    "created_at",
+    "title",
+    "organization",
+    "description",
+    "responsibilities",
+    "category",
+    "thumbnail",
+    "started_on",
+    "ended_on",
+)
+
+
+def user_is_editor(user):
+    """Check whether a user belongs to the Editor group."""
+    return (
+        user.is_authenticated
+        and user.groups.filter(name="Editor").exists()
+    )
 
 
 def show_main(request):
@@ -34,16 +73,29 @@ def show_main(request):
 
 # Project data delivery
 def get_projects_json(request):
-    """Return project data in JSON format."""
+    """Return filtered Project data in JSON format."""
     title_query = request.GET.get("title", "").strip()
+    role_query = request.GET.get("role", "").strip()
     projects = Project.objects.all()
 
+    # Search by title
     if title_query:
-        projects = projects.filter(title__icontains=title_query)
+        projects = projects.filter(
+            title__icontains=title_query,
+        )
+
+    # Filter by role
+    if role_query:
+        projects = projects.filter(
+            role=role_query,
+        )
 
     projects_json = serializers.serialize(
-        "json", projects, use_natural_foreign_keys=True  # Tambahkan argumen ini
+        "json",
+        projects,
+        fields=PROJECT_PUBLIC_FIELDS,
     )
+
     return HttpResponse(
         projects_json,
         content_type="application/json",
@@ -64,18 +116,23 @@ def show_projects(request):
         "name": "Rindu Maharani Nadhirah",
         "project_list": project_list,
         "title_query": request.GET.get("title", "").strip(),
+        "is_editor": user_is_editor(request.user),
+        "role_query": request.GET.get("role", "").strip(),
+        "project_roles": Project.objects.order_by("role").values_list(
+            "role",
+            flat=True,
+        ).distinct(),
     }
     return render(request, "projects.html", context)
 
 
-@login_required(login_url="/login/")
+@login_required(login_url="main:login")
 def create_project(request):
-    # Cek apakah akun yang sedang login adalah superuser (admin/kamu);
-    # kalau bukan, hentikan permintaannya dengan 403.
+    """Create a project using ProjectForm."""
+    # Only the portfolio owner can create project data
     if not request.user.is_superuser:
         raise PermissionDenied
-    
-    """Create a project using ProjectForm."""
+
     form = ProjectForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -89,36 +146,84 @@ def create_project(request):
     context = {
         "name": "Rindu Maharani Nadhirah",
         "form": form,
+        "form_title": "Add Project",
+        "submit_label": "Add Project",
     }
     return render(request, "projects_form.html", context)
 
 
-@login_required(login_url="/login/")
-def delete_project(request, project_id):
-    # Cek apakah akun yang sedang login adalah superuser (admin/kamu);
-    # kalau bukan, hentikan permintaannya dengan 403.
-    if not request.user.is_superuser:
+@login_required(login_url="main:login")
+def update_project(request, project_id):
+    """Update an existing project."""
+    # Editors and the portfolio owner can update project data
+    if not (
+        request.user.is_superuser
+        or user_is_editor(request.user)
+    ):
         raise PermissionDenied
-    
-    """Delete a project after a POST request."""
-    project = get_object_or_404(Project, pk=project_id)
 
-    if request.method == "POST":
-        project.delete()
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+    )
+    form = ProjectForm(
+        request.POST or None,
+        instance=project,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
         messages.success(
             request,
-            "Project deleted successfully.",
+            "Project updated successfully.",
         )
+        return redirect("main:show_projects")
 
+    context = {
+        "name": "Rindu Maharani Nadhirah",
+        "form": form,
+        "form_title": "Edit Project",
+        "submit_label": "Save Changes",
+    }
+    return render(request, "projects_form.html", context)
+
+
+@login_required(login_url="main:login")
+@require_POST
+def delete_project(request, project_id):
+    """Delete a project using a POST request."""
+    # Only the portfolio owner can delete project data
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+    )
+    project.delete()
+
+    messages.success(
+        request,
+        "Project deleted successfully.",
+    )
     return redirect("main:show_projects")
 
 
 # Experience data delivery
 def get_experiences_json(request):
-    """Return experience data in JSON format."""
+    """Return filtered Experience data in JSON format."""
+    search_query = request.GET.get("search", "").strip()
     category_query = request.GET.get("category", "").strip()
     experiences = Experience.objects.all()
 
+    # Search by role title or organization
+    if search_query:
+        experiences = experiences.filter(
+            Q(title__icontains=search_query)
+            | Q(organization__icontains=search_query)
+        )
+
+    # Filter by experience type
     if category_query:
         experiences = experiences.filter(
             category=category_query,
@@ -127,7 +232,9 @@ def get_experiences_json(request):
     experiences_json = serializers.serialize(
         "json",
         experiences,
+        fields=EXPERIENCE_PUBLIC_FIELDS,
     )
+
     return HttpResponse(
         experiences_json,
         content_type="application/json",
@@ -151,17 +258,24 @@ def show_experience(request):
         "name": "Rindu Maharani Nadhirah",
         "experience_list": experience_list,
         "experience_categories": Experience.EXPERIENCE_CHOICES,
+        "search_query": request.GET.get("search", "").strip(),
         "category_query": request.GET.get(
             "category",
             "",
         ).strip(),
+        "is_editor": user_is_editor(request.user),
     }
     return render(request, "experience.html", context)
 
 
 # Experience form actions
+@login_required(login_url="main:login")
 def create_experience(request):
     """Create an experience using ExperienceForm."""
+    # Only the portfolio owner can create experience data
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     form = ExperienceForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -181,8 +295,16 @@ def create_experience(request):
     return render(request, "experience_form.html", context)
 
 
+@login_required(login_url="main:login")
 def update_experience(request, experience_id):
     """Update an existing experience."""
+    # Editors and the portfolio owner can update experience data
+    if not (
+        request.user.is_superuser
+        or user_is_editor(request.user)
+    ):
+        raise PermissionDenied
+
     experience = get_object_or_404(
         Experience,
         pk=experience_id,
@@ -209,9 +331,13 @@ def update_experience(request, experience_id):
     return render(request, "experience_form.html", context)
 
 
+@login_required(login_url="main:login")
 @require_POST
 def delete_experience(request, experience_id):
     """Delete an experience using a POST request."""
+    # Only the portfolio owner can delete experience data
+    if not request.user.is_superuser:
+        raise PermissionDenied
     experience = get_object_or_404(
         Experience,
         pk=experience_id,
@@ -222,6 +348,27 @@ def delete_experience(request, experience_id):
         request,
         "Experience deleted successfully.",
     )
+    return redirect("main:show_experience")
+
+
+@login_required(login_url="main:login")
+@require_POST
+def toggle_experience_star(request, experience_id):
+    """Add or remove the current user's Experience star."""
+    experience = get_object_or_404(
+        Experience,
+        pk=experience_id,
+    )
+
+    # Remove an existing star or add a new star
+    if experience.starred_by.filter(pk=request.user.pk).exists():
+        experience.starred_by.remove(request.user)
+        message = f"Removed your star from {experience.title}."
+    else:
+        experience.starred_by.add(request.user)
+        message = f"Starred {experience.title}."
+
+    messages.success(request, message)
     return redirect("main:show_experience")
 
 
@@ -264,17 +411,22 @@ def logout_user(request):
     return response
 
 
-# Tanpa cek is_superuser: semua akun yang sudah login boleh memberi star
-@login_required(login_url="/login/")
-def toggle_star(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
+@login_required(login_url="main:login")
+@require_POST
+def toggle_project_star(request, project_id):
+    """Add or remove the current user's Project star."""
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+    )
 
-    if request.method == "POST":
-        # Kalau akun ini sudah pernah memberi star, batalkan star-nya.
-        # Kalau belum, tambahkan star.
-        if request.user in project.starred_by.all():
-            project.starred_by.remove(request.user)
-        else:
-            project.starred_by.add(request.user)
+    # Remove an existing star or add a new star
+    if project.starred_by.filter(pk=request.user.pk).exists():
+        project.starred_by.remove(request.user)
+        message = f"Removed your star from {project.title}."
+    else:
+        project.starred_by.add(request.user)
+        message = f"Starred {project.title}."
 
+    messages.success(request, message)
     return redirect("main:show_projects")

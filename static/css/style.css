@@ -166,6 +166,16 @@ section[id] {
     flex: 0 0 auto;
 }
 
+/* Keep navigation links and account actions together */
+.nav-actions {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
 /* Create the rounded navigation area */
 .site-nav {
     display: flex;
@@ -178,11 +188,81 @@ section[id] {
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
+    flex: 0 1 auto;
 }
 
 /* Hide the navbar scrollbar */
 .site-nav::-webkit-scrollbar {
     display: none;
+}
+
+/* Show account actions in a compact dropdown */
+.account-menu {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.account-menu summary {
+    list-style: none;
+}
+
+.account-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.account-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    color: var(--cream-light);
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.account-menu-icon {
+    display: grid;
+    gap: 0.22rem;
+}
+
+.account-menu-icon span {
+    display: block;
+    width: 1rem;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 999px;
+}
+
+.account-menu-panel {
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    right: 0;
+    z-index: 20;
+    display: grid;
+    min-width: 9rem;
+    padding: 0.4rem;
+    background-color: var(--navy);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.24);
+}
+
+.account-menu-panel a,
+.account-menu-user {
+    padding: 0.65rem 0.75rem;
+    color: var(--cream-light);
+    border-radius: calc(var(--radius) - 0.25rem);
+    font-size: 0.9rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.account-menu-user {
+    color: var(--nude-cream);
+    font-weight: 700;
 }
 
 .site-nav a {
@@ -202,7 +282,9 @@ section[id] {
 
 /* Give keyboard users a visible focus indicator */
 .brand:focus-visible,
-.site-nav a:focus-visible {
+.site-nav a:focus-visible,
+.account-menu-toggle:focus-visible,
+.account-menu-panel a:focus-visible {
     outline: 2px solid var(--nude-cream);
     outline-offset: 3px;
 }
@@ -222,6 +304,12 @@ section[id] {
         color: var(--navy);
         background-color: var(--nude-cream);
         transform: translateY(-1px);
+    }
+
+    .account-menu-toggle:hover,
+    .account-menu-panel a:hover {
+        color: var(--navy);
+        background-color: var(--nude-cream);
     }
 }
 
@@ -1522,11 +1610,13 @@ section[id] {
     display: flex;
     align-items: flex-end;
     gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .experience-filter-field {
     display: grid;
     gap: 0.35rem;
+    flex: 1 1 12rem;
 }
 
 .experience-filter label {
@@ -1535,7 +1625,9 @@ section[id] {
     font-weight: 700;
 }
 
-.experience-filter select {
+.experience-filter select,
+.experience-filter input {
+    width: 100%;
     min-height: 2.75rem;
     padding: 0.6rem 2.5rem 0.6rem 0.85rem;
     color: var(--navy);
@@ -1678,16 +1770,25 @@ section[id] {
     margin-bottom: 1.5rem;
 }
 
+/* Style the Project search and filter fields */
+.project-search__input,
+.project-search__select {
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    color: var(--ink);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font: inherit;
+}
+
 .project-search__input {
     flex: 1;
     min-width: 0;
-    min-height: 3rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: #fff;
-    color: var(--ink);
-    font: inherit;
+}
+
+.project-search__select {
+    min-width: 12rem;
 }
 
 .project-search .button {
@@ -1698,7 +1799,8 @@ section[id] {
     padding-inline: 1.25rem;
 }
 
-.project-search__input:focus {
+.project-search__input:focus,
+.project-search__select:focus {
     outline: 2px solid var(--accent);
     border-color: var(--accent);
 }
@@ -1712,6 +1814,8 @@ section[id] {
     grid-area: actions;
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     margin-top: 1rem;
 }
 

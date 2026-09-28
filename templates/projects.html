@@ -43,6 +43,7 @@
                     {% endif %}
                 </header>
 
+                <!-- Search and filter projects -->
                 <form
                     method="get"
                     action="{% url 'main:show_projects' %}"
@@ -52,11 +53,31 @@
                         type="search"
                         name="title"
                         value="{{ title_query }}"
-                        placeholder="Search project's name"
+                        placeholder="Search project titles"
                         class="project-search__input"
-                        aria-label="Cari berdasarkan nama proyek"
+                        aria-label="Search project titles"
                     >
-                    <button type="submit" class="button">Cari</button>
+
+                    <select
+                        name="role"
+                        class="project-search__select"
+                        aria-label="Filter projects by role"
+                    >
+                        <option value="">All roles</option>
+
+                        {% for role in project_roles %}
+                            <option
+                                value="{{ role }}"
+                                {% if role_query == role %}selected{% endif %}
+                            >
+                                {{ role }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" class="button">
+                        Apply
+                    </button>
                 </form>
 
                 <div class="projects-grid">
@@ -118,15 +139,25 @@
 
                             <div class="project-card-actions">
                                 {% include "components/project_star.html" with project=project %}
+
+                                {% if user.is_superuser or is_editor %}
+                                    <a
+                                        href="{% url 'main:update_project' project.id %}"
+                                        class="button"
+                                    >
+                                        Edit Project
+                                    </a>
+                                {% endif %}
+
                                 {% if user.is_superuser %}
                                     {% include "components/project_delete_modal.html" with project=project %}
                                 {% endif %}
                             </div>
                         </article>
                     {% empty %}
-                        {% if title_query %}
+                        {% if title_query or role_query %}
                             <p class="empty-state">
-                                No projects matched "{{title_query}}".
+                                No projects matched your search and filter.
                             </p>
                         {% else %}
                             <p class="empty-state">
