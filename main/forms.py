@@ -1,6 +1,9 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput, DateInput
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
 
 from main.models import Experience, Project
+
 
 
 class ProjectForm(ModelForm):
@@ -90,6 +93,56 @@ class ProjectForm(ModelForm):
                 }
             ),
         }
+
+    def clean_title(self):
+        """Remove HTML tags and reject an empty project title."""
+        title = strip_tags(self.cleaned_data["title"]).strip()
+
+        if not title:
+            raise ValidationError(
+                "Project title cannot contain only HTML tags."
+            )
+
+        return title
+
+    def clean_summary(self):
+        """Store the project summary without HTML tags."""
+        return strip_tags(
+            self.cleaned_data["summary"]
+        ).strip()
+
+    def clean_context(self):
+        """Store the project context without HTML tags."""
+        return strip_tags(
+            self.cleaned_data["context"]
+        ).strip()
+
+    def clean_role(self):
+        """Store the project role without HTML tags."""
+        return strip_tags(
+            self.cleaned_data["role"]
+        ).strip()
+
+    def clean_achievement(self):
+        """Store the optional achievement without HTML tags."""
+        return strip_tags(
+            self.cleaned_data.get("achievement", "")
+        ).strip()
+
+    def clean(self):
+        """Check that the Project date range is valid."""
+        cleaned_data = super().clean()
+        started_on = cleaned_data.get("started_on")
+        ended_on = cleaned_data.get("ended_on")
+
+        # The project cannot end before it starts
+        if started_on and ended_on and ended_on < started_on:
+            self.add_error(
+                "ended_on",
+                "End date cannot be earlier than start date.",
+            )
+
+        return cleaned_data
 
 # Form for creating and updating experience data
 class ExperienceForm(ModelForm):

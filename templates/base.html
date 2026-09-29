@@ -63,21 +63,6 @@
             </div>
         </div>
     </header>
-    <!-- Show feedback after form actions -->
-    {% if messages %}
-        <div
-            class="site-messages container"
-            aria-live="polite"
-        >
-            {% for message in messages %}
-                <p
-                    class="site-message{% if message.tags %} site-message--{{ message.tags }}{% endif %}"
-                >
-                    {{ message }}
-                </p>
-            {% endfor %}
-        </div>
-    {% endif %}
     {% block content %}
     {% endblock content %}
 
@@ -89,5 +74,21 @@
             </p>
         </div>
     </footer>
+
+    {% include "components/toast.html" %}
+
+    <!-- Store Django messages for toast.js -->
+    {% if messages %}
+        <div hidden>
+            {% for message in messages %}
+                <span
+                    class="django-toast-message"
+                    data-toast-title="{% if 'error' in message.tags %}Action failed{% else %}Success{% endif %}"
+                    data-toast-message="{{ message|escape }}"
+                    data-toast-type="{% if 'error' in message.tags %}error{% else %}success{% endif %}"
+                ></span>
+            {% endfor %}
+        </div>
+    {% endif %}
 </body>
 </html>

@@ -7,30 +7,14 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
 
-# Only expose public portfolio fields through JSON
-PROJECT_PUBLIC_FIELDS = (
-    "title",
-    "slug",
-    "summary",
-    "context",
-    "role",
-    "contributions",
-    "technologies",
-    "project_url",
-    "image_path",
-    "started_on",
-    "ended_on",
-    "achievement",
-    "is_featured",
-    "created_at",
-)
 
 EXPERIENCE_PUBLIC_FIELDS = (
     "created_at",
@@ -71,57 +55,68 @@ def show_main(request):
     return render(request, "index.html", context)
 
 
-# Project data delivery
 def get_projects_json(request):
-    """Return filtered Project data in JSON format."""
+    """Return filtered projects and the current user's star status."""
     title_query = request.GET.get("title", "").strip()
     role_query = request.GET.get("role", "").strip()
-    projects = Project.objects.all()
+    projects = Project.objects.prefetch_related("starred_by").all()
 
-    # Search by title
+    # Search by project title
     if title_query:
-        projects = projects.filter(
-            title__icontains=title_query,
-        )
+        projects = projects.filter(title__icontains=title_query)
 
-    # Filter by role
+    # Filter by the user's role in the project
     if role_query:
-        projects = projects.filter(
-            role=role_query,
+        projects = projects.filter(role=role_query)
+
+    project_data = []
+
+    for project in projects:
+        starred_users = list(project.starred_by.all())
+        is_starred = (
+            request.user.is_authenticated
+            and request.user in starred_users
         )
 
-    projects_json = serializers.serialize(
-        "json",
-        projects,
-        fields=PROJECT_PUBLIC_FIELDS,
-    )
+        project_data.append(
+            {
+                "pk": str(project.id),
+                "fields": {
+                    "title": project.title,
+                    "slug": project.slug,
+                    "summary": project.summary,
+                    "context": project.context,
+                    "role": project.role,
+                    "contributions": project.contributions,
+                    "technologies": project.technologies,
+                    "project_url": project.project_url,
+                    "image_path": project.image_path,
+                    "started_on": project.started_on,
+                    "ended_on": project.ended_on,
+                    "achievement": project.achievement,
+                    "is_featured": project.is_featured,
+                    "star_count": len(starred_users),
+                    "is_starred": is_starred,
+                },
+            }
+        )
 
-    return HttpResponse(
-        projects_json,
-        content_type="application/json",
-    )
+    return JsonResponse(project_data, safe=False)
 
 
+@ensure_csrf_cookie
 def show_projects(request):
-    """Deserialize and display project data."""
-    json_response = get_projects_json(request)
-
-    projects = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    project_list = [project.object for project in projects]
-
+    """Display the Projects page before AJAX loads its data."""
     context = {
         "name": "Rindu Maharani Nadhirah",
-        "project_list": project_list,
         "title_query": request.GET.get("title", "").strip(),
-        "is_editor": user_is_editor(request.user),
         "role_query": request.GET.get("role", "").strip(),
+        "is_editor": user_is_editor(request.user),
         "project_roles": Project.objects.order_by("role").values_list(
             "role",
             flat=True,
         ).distinct(),
+        "form": ProjectForm(),
     }
     return render(request, "projects.html", context)
 
@@ -150,6 +145,39 @@ def create_project(request):
         "submit_label": "Add Project",
     }
     return render(request, "projects_form.html", context)
+
+
+@require_POST
+def create_project_ajax(request):
+    """Create a project and return a JSON response."""
+    # Return JSON instead of redirecting unauthorized users
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {
+                "message": (
+                    "Only the portfolio owner can add projects."
+                )
+            },
+            status=403,
+        )
+
+    form = ProjectForm(request.POST)
+
+    if form.is_valid():
+        project = form.save()
+
+        return JsonResponse(
+            {
+                "message": "Project added successfully.",
+                "pk": str(project.id),
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )
 
 
 @login_required(login_url="main:login")

@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block meta %}
-    <!-- Basic page information -->
     <meta
         name="description"
         content="Selected projects by Rindu Maharani Nadhirah."
@@ -31,26 +30,27 @@
                         Selected projects in web development, product
                         development, and artificial intelligence.
                     </p>
-                    
+
                     {% if user.is_superuser %}
-                        <a
-                            href="{% url 'main:create_project' %}"
+                        <button
+                            type="button"
                             class="button project-add-button"
+                            popovertarget="add-project-modal"
                         >
                             <span aria-hidden="true">+</span>
                             Add Project
-                        </a>
+                        </button>
                     {% endif %}
                 </header>
 
-                <!-- Search and filter projects -->
+                <!-- Search projects without reloading the page -->
                 <form
-                    method="get"
-                    action="{% url 'main:show_projects' %}"
+                    id="project-search-form"
                     class="project-search"
                 >
                     <input
                         type="search"
+                        id="search-input"
                         name="title"
                         value="{{ title_query }}"
                         placeholder="Search project titles"
@@ -59,6 +59,7 @@
                     >
 
                     <select
+                        id="role-filter"
                         name="role"
                         class="project-search__select"
                         aria-label="Filter projects by role"
@@ -80,93 +81,557 @@
                     </button>
                 </form>
 
-                <div class="projects-grid">
-                    {% for project in project_list %}
-                        <article
-                            class="project-card{% if project.is_featured %} project-card--featured{% endif %}"
-                        >
-                            {% if project.image_path %}
-                                <a
-                                    class="project-preview{% if project.slug == 'rumputsehat-ews' %} project-preview--portrait{% endif %}"
-                                    href="{{ project.project_url }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    aria-label="Open the deployed {{ project.title }} project"
-                                >
-                                    <img
-                                        class="project-preview-image"
-                                        src="{% static project.image_path %}"
-                                        alt="Preview of the {{ project.title }} project"
-                                        loading="lazy"
-                                    >
-
-                                    <span class="project-preview-label">
-                                        View live project
-                                    </span>
-                                </a>
-                            {% endif %}
-
-                            <h2 class="project-title">
-                                {{ project.title }}
-                            </h2>
-
-                            <p class="project-subtitle">
-                                {{ project.summary }}
-                            </p>
-
-                            <p class="project-context">
-                                {{ project.role }} - {{ project.context }}
-                            </p>
-
-                            <h3 class="project-contribution-title">
-                                My contributions
-                            </h3>
-
-                            <ul class="project-contributions">
-                                {% for contribution in project.contributions %}
-                                    <li>{{ contribution }}</li>
-                                {% endfor %}
-                            </ul>
-
-                            <ul
-                                class="project-tags"
-                                aria-label="{{ project.title }} technologies"
-                            >
-                                {% for technology in project.technologies %}
-                                    <li>{{ technology }}</li>
-                                {% endfor %}
-                            </ul>
-
-                            <div class="project-card-actions">
-                                {% include "components/project_star.html" with project=project %}
-
-                                {% if user.is_superuser or is_editor %}
-                                    <a
-                                        href="{% url 'main:update_project' project.id %}"
-                                        class="button"
-                                    >
-                                        Edit Project
-                                    </a>
-                                {% endif %}
-
-                                {% if user.is_superuser %}
-                                    {% include "components/project_delete_modal.html" with project=project %}
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% empty %}
-                        {% if title_query or role_query %}
-                            <p class="empty-state">
-                                No projects matched your search and filter.
-                            </p>
-                        {% else %}
-                            <p class="empty-state">
-                                No projects have been added yet.
-                            </p>
-                        {% endif %}
-                    {% endfor %}
+                <!-- JavaScript controls these page states -->
+                <div id="loading" class="empty-state hide">
+                    <p>Loading projects...</p>
                 </div>
+
+                <div id="error" class="empty-state hide">
+                    <p>
+                        Project data could not be loaded. Please try again.
+                    </p>
+                </div>
+
+                <div id="empty" class="empty-state hide">
+                    <p>No projects matched your search and filter.</p>
+                </div>
+
+                <div
+                    id="project-grid"
+                    class="projects-grid hide"
+                    aria-live="polite"
+                ></div>
             </div>
         </section>
     </main>
+
+    {% if user.is_superuser %}
+        {% include "components/project_form_modal.html" %}
+    {% endif %}
+
+    <script>
+        // Django endpoints and current user permissions
+        const PROJECTS_ENDPOINT =
+            "{% url 'main:get_projects_json' %}";
+        const CREATE_PROJECT_ENDPOINT =
+            "{% url 'main:create_project_ajax' %}";
+        const STATIC_PREFIX = "{% get_static_prefix %}";
+        const LOGIN_URL = "{% url 'main:login' %}";
+        const IS_AUTHENTICATED =
+            "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+        const IS_SUPERUSER =
+            "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+        const IS_EDITOR =
+            "{{ is_editor|yesno:'true,false' }}" === "true";
+
+        const PLACEHOLDER_ID =
+            "00000000-0000-0000-0000-000000000000";
+        const STAR_URL_TEMPLATE =
+            "{% url 'main:toggle_project_star' '00000000-0000-0000-0000-000000000000' %}";
+        const UPDATE_URL_TEMPLATE =
+            "{% url 'main:update_project' '00000000-0000-0000-0000-000000000000' %}";
+        const DELETE_URL_TEMPLATE =
+            "{% url 'main:delete_project' '00000000-0000-0000-0000-000000000000' %}";
+
+        const SEARCH_DELAY = 300;
+        let searchTimer;
+        let projectsController;
+
+        // Elements updated by JavaScript
+        const loadingState = document.getElementById("loading");
+        const errorState = document.getElementById("error");
+        const emptyState = document.getElementById("empty");
+        const projectGrid = document.getElementById("project-grid");
+        const searchForm = document.getElementById(
+            "project-search-form"
+        );
+        const searchInput = document.getElementById("search-input");
+        const roleFilter = document.getElementById("role-filter");
+        const projectForm = document.getElementById("project-form");
+
+        // Read a cookie value, including Django's CSRF token
+        function getCookie(name) {
+            const cookies = document.cookie
+                ? document.cookie.split(";")
+                : [];
+
+            for (const item of cookies) {
+                const cookie = item.trim();
+
+                if (cookie.startsWith(`${name}=`)) {
+                    return decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    );
+                }
+            }
+
+            return null;
+        }
+
+        // Convert untrusted values into safe text for innerHTML
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
+        }
+
+        // Insert a real UUID into a Django URL template
+        function createProjectUrl(template, projectId) {
+            return template.replace(PLACEHOLDER_ID, projectId);
+        }
+
+        // Display only the requested Projects page section
+        function displayPageSection({
+            showLoading = false,
+            showError = false,
+            showEmpty = false,
+            showGrid = false,
+        }) {
+            loadingState.classList.toggle("hide", !showLoading);
+            errorState.classList.toggle("hide", !showError);
+            emptyState.classList.toggle("hide", !showEmpty);
+            projectGrid.classList.toggle("hide", !showGrid);
+        }
+
+        function buildStarHtml(project, projectId) {
+            const starCount = Number(project.star_count) || 0;
+
+            if (!IS_AUTHENTICATED) {
+                return `
+                    <a
+                        href="${LOGIN_URL}"
+                        class="button button-star"
+                    >
+                        <span aria-hidden="true">★</span>
+                        Log in to star
+                        <span class="star-count">${starCount}</span>
+                    </a>
+                `;
+            }
+
+            const starUrl = createProjectUrl(
+                STAR_URL_TEMPLATE,
+                projectId
+            );
+            const starText = project.is_starred
+                ? "Unstar"
+                : "Star";
+            const starredClass = project.is_starred
+                ? " is-starred"
+                : "";
+            const pressedState = project.is_starred
+                ? "true"
+                : "false";
+            const csrfToken = escapeHtml(
+                getCookie("csrftoken") || ""
+            );
+
+            return `
+                <form
+                    method="post"
+                    action="${starUrl}"
+                    class="star-form"
+                >
+                    <input
+                        type="hidden"
+                        name="csrfmiddlewaretoken"
+                        value="${csrfToken}"
+                    >
+
+                    <button
+                        type="submit"
+                        class="button button-star${starredClass}"
+                        aria-pressed="${pressedState}"
+                    >
+                        <span aria-hidden="true">★</span>
+                        ${starText}
+                        <span class="star-count">${starCount}</span>
+                    </button>
+                </form>
+            `;
+        }
+
+        function buildEditHtml(projectId) {
+            if (!IS_SUPERUSER && !IS_EDITOR) {
+                return "";
+            }
+
+            const updateUrl = createProjectUrl(
+                UPDATE_URL_TEMPLATE,
+                projectId
+            );
+
+            return `
+                <a href="${updateUrl}" class="button">
+                    Edit Project
+                </a>
+            `;
+        }
+
+        function buildDeleteHtml(project, projectId) {
+            if (!IS_SUPERUSER) {
+                return "";
+            }
+
+            const deleteUrl = createProjectUrl(
+                DELETE_URL_TEMPLATE,
+                projectId
+            );
+            const modalId = `delete-project-${projectId}`;
+            const safeTitle = escapeHtml(project.title);
+            const csrfToken = escapeHtml(
+                getCookie("csrftoken") || ""
+            );
+
+            return `
+                <div class="project-delete-action">
+                    <button
+                        type="button"
+                        class="button button-danger"
+                        popovertarget="${modalId}"
+                    >
+                        Delete Project
+                    </button>
+                </div>
+
+                <div
+                    id="${modalId}"
+                    class="project-delete-modal"
+                    popover="auto"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="${modalId}-title"
+                >
+                    <button
+                        type="button"
+                        class="project-delete-modal__backdrop"
+                        popovertarget="${modalId}"
+                        popovertargetaction="hide"
+                        aria-label="Close delete confirmation"
+                    ></button>
+
+                    <div class="project-delete-modal__content">
+                        <button
+                            type="button"
+                            class="project-delete-modal__close"
+                            popovertarget="${modalId}"
+                            popovertargetaction="hide"
+                            aria-label="Close delete confirmation"
+                        >
+                            ×
+                        </button>
+
+                        <h2 id="${modalId}-title">
+                            Delete Project?
+                        </h2>
+
+                        <p>
+                            Are you sure you want to delete
+                            <strong>${safeTitle}</strong>?
+                        </p>
+
+                        <div class="project-delete-modal__actions">
+                            <button
+                                type="button"
+                                class="button button-secondary"
+                                popovertarget="${modalId}"
+                                popovertargetaction="hide"
+                            >
+                                Cancel
+                            </button>
+
+                            <form method="post" action="${deleteUrl}">
+                                <input
+                                    type="hidden"
+                                    name="csrfmiddlewaretoken"
+                                    value="${csrfToken}"
+                                >
+
+                                <button
+                                    type="submit"
+                                    class="button button-danger"
+                                >
+                                    Yes, Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Build one safe project card from JSON data
+        function buildProjectCard(item) {
+            const project = item.fields;
+            const projectId = item.pk;
+            const card = document.createElement("article");
+            const featuredClass = project.is_featured
+                ? " project-card--featured"
+                : "";
+            const portraitClass =
+                project.slug === "rumputsehat-ews"
+                    ? " project-preview--portrait"
+                    : "";
+
+            card.className = `project-card${featuredClass}`;
+
+            const safeTitle = escapeHtml(project.title);
+            const safeProjectUrl = escapeHtml(project.project_url);
+            const safeImagePath = escapeHtml(project.image_path);
+            const safeSummary = escapeHtml(project.summary);
+            const safeRole = escapeHtml(project.role);
+            const safeContext = escapeHtml(project.context);
+
+            const imageHtml = project.image_path
+                ? `
+                    <a
+                        class="project-preview${portraitClass}"
+                        href="${safeProjectUrl}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open the deployed ${safeTitle} project"
+                    >
+                        <img
+                            class="project-preview-image"
+                            src="${STATIC_PREFIX}${safeImagePath}"
+                            alt="Preview of the ${safeTitle} project"
+                            loading="lazy"
+                        >
+
+                        <span class="project-preview-label">
+                            View live project
+                        </span>
+                    </a>
+                `
+                : "";
+
+            const contributions = Array.isArray(
+                project.contributions
+            )
+                ? project.contributions
+                : [];
+            const technologies = Array.isArray(
+                project.technologies
+            )
+                ? project.technologies
+                : [];
+
+            const contributionHtml = contributions
+                .map(
+                    (contribution) =>
+                        `<li>${escapeHtml(contribution)}</li>`
+                )
+                .join("");
+
+            const technologyHtml = technologies
+                .map(
+                    (technology) =>
+                        `<li>${escapeHtml(technology)}</li>`
+                )
+                .join("");
+
+            card.innerHTML = `
+                ${imageHtml}
+
+                <h2 class="project-title">${safeTitle}</h2>
+
+                <p class="project-subtitle">${safeSummary}</p>
+
+                <p class="project-context">
+                    ${safeRole} - ${safeContext}
+                </p>
+
+                <h3 class="project-contribution-title">
+                    My contributions
+                </h3>
+
+                <ul class="project-contributions">
+                    ${contributionHtml}
+                </ul>
+
+                <ul
+                    class="project-tags"
+                    aria-label="${safeTitle} technologies"
+                >
+                    ${technologyHtml}
+                </ul>
+
+                <div class="project-card-actions">
+                    ${buildStarHtml(project, projectId)}
+                    ${buildEditHtml(projectId)}
+                    ${buildDeleteHtml(project, projectId)}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Request filtered projects and update the page
+        async function fetchProjects() {
+            if (projectsController) {
+                projectsController.abort();
+            }
+
+            projectsController = new AbortController();
+            displayPageSection({ showLoading: true });
+
+            const endpoint = new URL(
+                PROJECTS_ENDPOINT,
+                window.location.origin
+            );
+            const title = searchInput.value.trim();
+            const role = roleFilter.value;
+
+            if (title) {
+                endpoint.searchParams.set("title", title);
+            }
+
+            if (role) {
+                endpoint.searchParams.set("role", role);
+            }
+
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                    signal: projectsController.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Request failed with status ${response.status}`
+                    );
+                }
+
+                const projects = await response.json();
+                projectGrid.replaceChildren();
+
+                if (projects.length === 0) {
+                    displayPageSection({ showEmpty: true });
+                    return;
+                }
+
+                for (const project of projects) {
+                    projectGrid.appendChild(
+                        buildProjectCard(project)
+                    );
+                }
+
+                displayPageSection({ showGrid: true });
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+
+                console.error("Unable to load projects:", error);
+                displayPageSection({ showError: true });
+            }
+        }
+
+        function searchProjects() {
+            fetchProjects();
+        }
+
+        // Wait until the user briefly stops typing
+        searchInput.addEventListener("input", () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(
+                searchProjects,
+                SEARCH_DELAY
+            );
+        });
+
+        roleFilter.addEventListener("change", searchProjects);
+
+        searchForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            clearTimeout(searchTimer);
+            searchProjects();
+        });
+
+        function closeProjectModal() {
+            const modal = document.getElementById(
+                "add-project-modal"
+            );
+
+            if (modal?.matches(":popover-open")) {
+                modal.hidePopover();
+            }
+        }
+
+        // Create a project without reloading the page
+        async function addProject(event) {
+            event.preventDefault();
+
+            const submitButton = projectForm.querySelector(
+                'button[type="submit"]'
+            );
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch(
+                    CREATE_PROJECT_ENDPOINT,
+                    {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken":
+                                getCookie("csrftoken") || "",
+                        },
+                        body: new FormData(projectForm),
+                    }
+                );
+                const result = await response
+                    .json()
+                    .catch(() => ({}));
+
+                if (response.ok) {
+                    projectForm.reset();
+                    closeProjectModal();
+                    showToast(
+                        "Project added",
+                        "The new project was added successfully.",
+                        "success"
+                    );
+                    fetchProjects();
+                } else {
+                    const messages = result.errors
+                        ? Object.values(result.errors)
+                            .flat()
+                            .map((error) => error.message)
+                        : [
+                            result.message
+                            || `Request failed with status ${response.status}.`,
+                        ];
+
+                    showToast(
+                        "Project could not be added",
+                        messages.join("\n"),
+                        "error",
+                        5000
+                    );
+                }
+            } catch (error) {
+                console.error("Unable to add project:", error);
+                showToast(
+                    "Connection error",
+                    "The server could not be reached. Please try again.",
+                    "error",
+                    5000
+                );
+            } finally {
+                submitButton.disabled = false;
+            }
+        }
+
+        if (projectForm) {
+            projectForm.addEventListener("submit", addProject);
+        }
+
+        // Load project data when the page opens
+        fetchProjects();
+    </script>
 {% endblock content %}

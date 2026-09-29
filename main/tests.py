@@ -5,7 +5,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils.html import escape
 from main.models import Experience, Project
-from main.forms import ExperienceForm
+from main.forms import ExperienceForm, ProjectForm
 
 
 class MainTest(TestCase):
@@ -333,20 +333,26 @@ class ProjectPageTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "projects.html")
 
-    def test_projects_page_displays_database_content(self):
+    def test_projects_page_contains_ajax_structure(self):
         response = self.client.get(reverse("main:show_projects"))
 
-        self.assertContains(response, self.project.title)
-        self.assertContains(response, self.project.summary)
-        self.assertContains(response, self.project.role)
-        self.assertContains(response, "Built the project interface.")
-        self.assertContains(response, "Django")
+        self.assertContains(response, 'id="project-search-form"')
+        self.assertContains(response, 'id="loading"')
+        self.assertContains(response, 'id="error"')
+        self.assertContains(response, 'id="empty"')
+        self.assertContains(response, 'id="project-grid"')
+        self.assertContains(response, "function fetchProjects")
+        self.assertContains(response, "function escapeHtml")
 
-    def test_empty_projects_page(self):
+    def test_empty_projects_json(self):
         Project.objects.all().delete()
-        response = self.client.get(reverse("main:show_projects"))
 
-        self.assertContains(response, "No projects have been added yet.")
+        response = self.client.get(
+            reverse("main:get_projects_json")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
 
     def test_projects_are_ordered_by_newest(self):
         Project.objects.create(
@@ -362,17 +368,18 @@ class ProjectPageTest(TestCase):
             started_on=date(2026, 8, 1),
         )
 
-        response = self.client.get(reverse("main:show_projects"))
+        response = self.client.get(
+            reverse("main:get_projects_json")
+        )
         project_titles = [
-            project.title
-            for project in response.context["project_list"]
+            item["fields"]["title"]
+            for item in response.json()
         ]
 
         self.assertEqual(
             project_titles,
             ["Test Portfolio", "Older Project"],
         )
-
 
 class AssignmentFourAccessTest(TestCase):
     def setUp(self):
@@ -771,49 +778,88 @@ class AssignmentFourAccessTest(TestCase):
             self.regular_user.username,
         )
 
-    def test_management_buttons_match_the_user_role(self):
-        # Visitors only see the login link for starring content
-        visitor_projects = self.client.get(reverse("main:show_projects"))
+    def test_management_controls_match_the_user_role(self):
+        # Visitors do not receive owner-only modal controls
+        visitor_projects = self.client.get(
+            reverse("main:show_projects")
+        )
         visitor_experiences = self.client.get(
             reverse("main:show_experience")
         )
-        self.assertContains(visitor_projects, "Log in to star")
-        self.assertContains(visitor_experiences, "Log in to star")
-        self.assertNotContains(visitor_projects, "Add Project")
-        self.assertNotContains(visitor_projects, "Edit Project")
-        self.assertNotContains(visitor_projects, "Delete Project")
-        self.assertNotContains(visitor_experiences, "Add Experience")
-        self.assertNotContains(visitor_experiences, "Edit Experience")
-        self.assertNotContains(visitor_experiences, "Delete Experience")
 
-        # Editors see edit actions but not owner actions
+        self.assertFalse(visitor_projects.context["is_editor"])
+        self.assertNotContains(
+            visitor_projects,
+            'popovertarget="add-project-modal"',
+        )
+        self.assertNotContains(
+            visitor_experiences,
+            "Add Experience",
+        )
+        self.assertNotContains(
+            visitor_experiences,
+            "Edit Experience",
+        )
+        self.assertNotContains(
+            visitor_experiences,
+            "Delete Experience",
+        )
+
+        # Editors can update but cannot create or delete
         self.client.force_login(self.editor)
-        editor_projects = self.client.get(reverse("main:show_projects"))
+        editor_projects = self.client.get(
+            reverse("main:show_projects")
+        )
         editor_experiences = self.client.get(
             reverse("main:show_experience")
         )
-        self.assertContains(editor_projects, "Edit Project")
-        self.assertContains(editor_experiences, "Edit Experience")
-        self.assertNotContains(editor_projects, "Add Project")
-        self.assertNotContains(editor_projects, "Delete Project")
-        self.assertNotContains(editor_experiences, "Add Experience")
-        self.assertNotContains(editor_experiences, "Delete Experience")
 
-        # The owner sees all management actions
+        self.assertTrue(editor_projects.context["is_editor"])
+        self.assertNotContains(
+            editor_projects,
+            'popovertarget="add-project-modal"',
+        )
+        self.assertContains(
+            editor_experiences,
+            "Edit Experience",
+        )
+        self.assertNotContains(
+            editor_experiences,
+            "Add Experience",
+        )
+        self.assertNotContains(
+            editor_experiences,
+            "Delete Experience",
+        )
+
+        # The owner receives create and delete controls
         self.client.force_login(self.owner)
-        owner_projects = self.client.get(reverse("main:show_projects"))
+        owner_projects = self.client.get(
+            reverse("main:show_projects")
+        )
         owner_experiences = self.client.get(
             reverse("main:show_experience")
         )
-        self.assertContains(owner_projects, "Add Project")
-        self.assertContains(owner_projects, "Edit Project")
-        self.assertContains(owner_projects, "Delete Project")
-        self.assertContains(owner_experiences, "Add Experience")
-        self.assertContains(owner_experiences, "Edit Experience")
-        self.assertContains(owner_experiences, "Delete Experience")
+
+        self.assertContains(
+            owner_projects,
+            'popovertarget="add-project-modal"',
+        )
+        self.assertContains(owner_projects, 'id="project-form"')
+        self.assertContains(
+            owner_experiences,
+            "Add Experience",
+        )
+        self.assertContains(
+            owner_experiences,
+            "Edit Experience",
+        )
+        self.assertContains(
+            owner_experiences,
+            "Delete Experience",
+        )
 
     def test_project_search_and_role_filter_work_together(self):
-        # Add unrelated content that should be removed by the filters
         Project.objects.create(
             title="Research Tool",
             slug="research-tool",
@@ -828,12 +874,21 @@ class AssignmentFourAccessTest(TestCase):
         )
 
         response = self.client.get(
-            reverse("main:show_projects"),
-            {"title": "Permission", "role": "Developer"},
+            reverse("main:get_projects_json"),
+            {
+                "title": "Permission",
+                "role": "Developer",
+            },
         )
+        titles = [
+            item["fields"]["title"]
+            for item in response.json()
+        ]
 
-        self.assertContains(response, self.project.title)
-        self.assertNotContains(response, "Research Tool")
+        self.assertEqual(
+            titles,
+            [self.project.title],
+        )
 
     def test_experience_search_and_category_filter_work_together(self):
         # Add unrelated content that should be removed by the filters
@@ -895,3 +950,191 @@ class AssignmentFourAccessTest(TestCase):
         self.assertFalse(new_user.is_superuser)
         self.assertFalse(new_user.is_staff)
         self.assertFalse(new_user.groups.filter(name="Editor").exists())
+
+
+class TutorialFiveAjaxTest(TestCase):
+    def setUp(self):
+        Project.objects.all().delete()
+
+        self.owner = User.objects.create_superuser(
+            username="ajax-owner",
+            password="test-password",
+        )
+        self.regular_user = User.objects.create_user(
+            username="ajax-user",
+            password="test-password",
+        )
+
+        self.project = Project.objects.create(
+            title="AJAX Test Project",
+            slug="ajax-test-project",
+            summary="A project used to test AJAX.",
+            context="Tutorial 5",
+            role="Developer",
+            contributions=["Implemented AJAX."],
+            technologies=["Django", "JavaScript"],
+            project_url="https://example.com/ajax-project/",
+            image_path="img/projects/sortify.webp",
+            started_on=date(2026, 9, 29),
+        )
+
+    def project_form_data(self, **changes):
+        """Return valid ProjectForm data with optional changes."""
+        data = {
+            "title": "New AJAX Project",
+            "slug": "new-ajax-project",
+            "summary": "Created without reloading the page.",
+            "context": "Tutorial 5",
+            "role": "Developer",
+            "project_url": "https://example.com/new-project/",
+            "image_path": "img/projects/sortify.webp",
+            "started_on": "2026-09-29",
+            "ended_on": "",
+            "achievement": "",
+            "is_featured": "",
+        }
+        data.update(changes)
+        return data
+
+    def test_project_end_date_cannot_be_before_start_date(self):
+        """Reject a Project end date earlier than its start date."""
+        form = ProjectForm(
+            data=self.project_form_data(
+                started_on="2026-09-29",
+                ended_on="2026-09-20",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            "End date cannot be earlier than start date.",
+            form.errors["ended_on"],
+        )
+
+    def test_projects_page_sets_csrf_cookie(self):
+        response = self.client.get(
+            reverse("main:show_projects")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("csrftoken", response.cookies)
+        self.assertContains(response, "toast-component")
+        self.assertContains(response, "function fetchProjects")
+        self.assertContains(response, "function escapeHtml")
+
+    def test_json_includes_star_count_and_current_user_status(self):
+        self.project.starred_by.add(self.regular_user)
+        self.client.force_login(self.regular_user)
+
+        response = self.client.get(
+            reverse("main:get_projects_json")
+        )
+        fields = response.json()[0]["fields"]
+
+        self.assertEqual(fields["star_count"], 1)
+        self.assertTrue(fields["is_starred"])
+        self.assertNotIn("starred_by", fields)
+        self.assertNotIn("starred_by_names", fields)
+        self.assertNotContains(
+            response,
+            self.regular_user.username,
+        )
+
+    def test_ajax_create_requires_post_and_csrf(self):
+        url = reverse("main:create_project_ajax")
+
+        self.client.force_login(self.owner)
+        self.assertEqual(
+            self.client.get(url).status_code,
+            405,
+        )
+
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.owner)
+
+        self.assertEqual(
+            csrf_client.post(
+                url,
+                data=self.project_form_data(),
+            ).status_code,
+            403,
+        )
+
+    def test_ajax_create_rejects_non_owner(self):
+        url = reverse("main:create_project_ajax")
+
+        visitor_response = self.client.post(
+            url,
+            data=self.project_form_data(),
+        )
+        self.assertEqual(visitor_response.status_code, 403)
+
+        self.client.force_login(self.regular_user)
+        user_response = self.client.post(
+            url,
+            data=self.project_form_data(),
+        )
+        self.assertEqual(user_response.status_code, 403)
+
+    def test_owner_can_create_project_with_ajax(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(
+            reverse("main:create_project_ajax"),
+            data=self.project_form_data(),
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(
+            Project.objects.filter(
+                slug="new-ajax-project",
+            ).exists()
+        )
+        self.assertIn("pk", response.json())
+
+    def test_ajax_returns_form_errors_as_json(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(
+            reverse("main:create_project_ajax"),
+            data=self.project_form_data(title="   "),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("title", response.json()["errors"])
+        self.assertFalse(
+            Project.objects.filter(
+                slug="new-ajax-project",
+            ).exists()
+        )
+
+    def test_project_form_cleans_html_tags(self):
+        form = ProjectForm(
+            data=self.project_form_data(
+                title="Portfolio <b>Website</b>",
+                summary="<script>alert('x')</script>Safe summary.",
+                context="<b>Tutorial 5</b>",
+                role="<i>Developer</i>",
+            )
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        project = form.save()
+
+        self.assertEqual(
+            project.title,
+            "Portfolio Website",
+        )
+        self.assertNotIn("<script>", project.summary)
+        self.assertEqual(project.context, "Tutorial 5")
+        self.assertEqual(project.role, "Developer")
+
+    def test_project_form_rejects_html_only_title(self):
+        form = ProjectForm(
+            data=self.project_form_data(
+                title="<img src='x'>",
+            )
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("title", form.errors)
