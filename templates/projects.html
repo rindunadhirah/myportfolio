@@ -124,8 +124,6 @@
         const IS_EDITOR =
             "{{ is_editor|yesno:'true,false' }}" === "true";
 
-        const PLACEHOLDER_ID =
-            "00000000-0000-0000-0000-000000000000";
         const STAR_URL_TEMPLATE =
             "{% url 'main:toggle_project_star' '00000000-0000-0000-0000-000000000000' %}";
         const UPDATE_URL_TEMPLATE =
@@ -148,40 +146,8 @@
         const searchInput = document.getElementById("search-input");
         const roleFilter = document.getElementById("role-filter");
         const projectForm = document.getElementById("project-form");
-
-        // Read a cookie value, including Django's CSRF token
-        function getCookie(name) {
-            const cookies = document.cookie
-                ? document.cookie.split(";")
-                : [];
-
-            for (const item of cookies) {
-                const cookie = item.trim();
-
-                if (cookie.startsWith(`${name}=`)) {
-                    return decodeURIComponent(
-                        cookie.substring(name.length + 1)
-                    );
-                }
-            }
-
-            return null;
-        }
-
-        // Convert untrusted values into safe text for innerHTML
-        function escapeHtml(value) {
-            return String(value ?? "")
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#39;");
-        }
-
-        // Insert a real UUID into a Django URL template
-        function createProjectUrl(template, projectId) {
-            return template.replace(PLACEHOLDER_ID, projectId);
-        }
+        const { escapeHtml, fillUrl, getCookie } =
+            window.ajaxUtils;
 
         // Display only the requested Projects page section
         function displayPageSection({
@@ -212,7 +178,7 @@
                 `;
             }
 
-            const starUrl = createProjectUrl(
+            const starUrl = fillUrl(
                 STAR_URL_TEMPLATE,
                 projectId
             );
@@ -259,7 +225,7 @@
                 return "";
             }
 
-            const updateUrl = createProjectUrl(
+            const updateUrl = fillUrl(
                 UPDATE_URL_TEMPLATE,
                 projectId
             );
@@ -276,7 +242,7 @@
                 return "";
             }
 
-            const deleteUrl = createProjectUrl(
+            const deleteUrl = fillUrl(
                 DELETE_URL_TEMPLATE,
                 projectId
             );

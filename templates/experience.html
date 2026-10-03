@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block meta %}
     <!-- Basic page information -->
@@ -15,8 +16,17 @@
     <main id="main-content">
         <section
             class="experience-section experience-page"
-            id="experience"
+            id="experience-app"
             aria-labelledby="experience-title"
+            data-experiences-endpoint="{% url 'main:get_experiences_json' %}"
+            data-create-experience-endpoint="{% url 'main:create_experience_ajax' %}"
+            data-login-url="{% url 'main:login' %}"
+            data-star-url-template="{% url 'main:toggle_experience_star' '00000000-0000-0000-0000-000000000000' %}"
+            data-update-url-template="{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}"
+            data-delete-url-template="{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}"
+            data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+            data-is-superuser="{{ user.is_superuser|yesno:'true,false' }}"
+            data-is-editor="{{ is_editor|yesno:'true,false' }}"
         >
             <div class="container">
                 <!-- Introduce the Experience page -->
@@ -36,17 +46,19 @@
                 <!-- Add and filter experience data -->
                 <div class="experience-page-tools">
                     {% if user.is_superuser %}
-                        <a
-                            href="{% url 'main:create_experience' %}"
+                        <button
+                            type="button"
                             class="button"
+                            popovertarget="add-experience-modal"
                         >
                             <span aria-hidden="true">+</span>
                             Add Experience
-                        </a>
+                        </button>
                     {% endif %}
 
-                    <!-- Search and filter experiences -->
+                    <!-- Search without reloading the page -->
                     <form
+                        id="experience-filter-form"
                         method="get"
                         action="{% url 'main:show_experience' %}"
                         class="experience-filter"
@@ -93,86 +105,53 @@
                     </form>
                 </div>
 
-                <div class="experience-grid">
-                    {% for experience in experience_list %}
-                        <article class="experience-card">
-                            <!-- Show the type and date -->
-                            <div class="experience-card-header">
-                                <span class="experience-category">
-                                    {{ experience.get_category_display }}
-                                </span>
-
-                                <p class="experience-date">
-                                    <time datetime="{{ experience.started_on|date:'Y-m-d' }}">
-                                        {{ experience.started_on|date:"M Y" }}
-                                    </time>
-                                    -
-                                    {% if experience.ended_on %}
-                                        <time datetime="{{ experience.ended_on|date:'Y-m-d' }}">
-                                            {{ experience.ended_on|date:"M Y" }}
-                                        </time>
-                                    {% else %}
-                                        Present
-                                    {% endif %}
-                                </p>
-                            </div>
-
-                            <!-- Show the role and organization -->
-                            <h2>{{ experience.title }}</h2>
-
-                            <p class="experience-organization">
-                                {{ experience.organization }}
-                            </p>
-
-                            <!-- Show responsibilities as points -->
-                            {% if experience.responsibilities %}
-                                <ul class="experience-responsibilities">
-                                    {% for responsibility in experience.responsibilities %}
-                                        <li>{{ responsibility }}</li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p class="experience-description">
-                                    {{ experience.description }}
-                                </p>
-                            {% endif %}
-
-                            {% if experience.is_ongoing %}
-                                <p class="experience-status">Ongoing</p>
-                            {% else %}
-                                <p class="experience-status">Completed</p>
-                            {% endif %}
-                            <!-- Show actions allowed for the current user -->
-                            <div class="experience-card-actions">
-                                {% include "components/experience_star.html" with experience=experience %}
-
-                                {% if user.is_superuser or is_editor %}
-                                    <a
-                                        href="{% url 'main:update_experience' experience.id %}"
-                                        class="button"
-                                    >
-                                        Edit Experience
-                                    </a>
-                                {% endif %}
-
-                                {% if user.is_superuser %}
-                                    {% include "components/experience_delete_modal.html" with experience=experience %}
-                                {% endif %}
-                            </div>
-                        </article>
-                    {% empty %}
-                        {% if search_query or category_query %}
-                            <p class="empty-state">
-                                No experiences matched your search and filter.
-                            </p>
-                        {% else %}
-                            <p class="empty-state">
-                                No experience has been added yet.
-                            </p>
-                        {% endif %}
-                    {% endfor %}
+                <!-- JavaScript controls these page states -->
+                <div
+                    id="experience-loading"
+                    class="experience-state"
+                    role="status"
+                >
+                    <p>Loading experiences...</p>
                 </div>
+
+                <div
+                    id="experience-error"
+                    class="experience-state hide"
+                    role="alert"
+                >
+                    <p>
+                        Experience data could not be loaded. Please try again.
+                    </p>
+
+                    <button
+                        type="button"
+                        id="experience-retry"
+                        class="button"
+                    >
+                        Try Again
+                    </button>
+                </div>
+
+                <div
+                    id="experience-empty"
+                    class="experience-state hide"
+                >
+                    <p>No experiences matched your search and filter.</p>
+                </div>
+
+                <div
+                    id="experience-grid"
+                    class="experience-grid hide"
+                    aria-live="polite"
+                    aria-busy="true"
+                ></div>
             </div>
         </section>
     </main>
+
+    {% if user.is_superuser %}
+        {% include "components/experience_form_modal.html" %}
+    {% endif %}
+
+    <script src="{% static 'js/experience.js' %}"></script>
 {% endblock content %}
