@@ -4,29 +4,15 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from main.forms import ExperienceForm, ProjectForm
 from main.models import Experience, Project
-
-
-EXPERIENCE_PUBLIC_FIELDS = (
-    "created_at",
-    "title",
-    "organization",
-    "description",
-    "responsibilities",
-    "category",
-    "thumbnail",
-    "started_on",
-    "ended_on",
-)
 
 
 def user_is_editor(user):
@@ -239,10 +225,10 @@ def delete_project(request, project_id):
 
 # Experience data delivery
 def get_experiences_json(request):
-    """Return filtered Experience data in JSON format."""
+    """Return filtered experiences and safe star information."""
     search_query = request.GET.get("search", "").strip()
     category_query = request.GET.get("category", "").strip()
-    experiences = Experience.objects.all()
+    experiences = Experience.objects.prefetch_related("starred_by").all()
 
     # Search by role title or organization
     if search_query:
@@ -257,34 +243,47 @@ def get_experiences_json(request):
             category=category_query,
         )
 
-    experiences_json = serializers.serialize(
-        "json",
-        experiences,
-        fields=EXPERIENCE_PUBLIC_FIELDS,
-    )
+    experience_data = []
 
-    return HttpResponse(
-        experiences_json,
-        content_type="application/json",
-    )
+    for experience in experiences:
+        starred_users = list(experience.starred_by.all())
+        is_starred = (
+            request.user.is_authenticated
+            and request.user in starred_users
+        )
+
+        experience_data.append(
+            {
+                "pk": str(experience.id),
+                "fields": {
+                    "title": experience.title,
+                    "organization": experience.organization,
+                    "description": experience.description,
+                    "responsibilities": experience.responsibilities,
+                    "category": experience.category,
+                    "category_label": experience.get_category_display(),
+                    "thumbnail": experience.thumbnail,
+                    "started_on": experience.started_on.isoformat(),
+                    "ended_on": (
+                        experience.ended_on.isoformat()
+                        if experience.ended_on
+                        else None
+                    ),
+                    "is_ongoing": experience.is_ongoing,
+                    "star_count": len(starred_users),
+                    "is_starred": is_starred,
+                },
+            }
+        )
+
+    return JsonResponse(experience_data, safe=False)
 
 
+@ensure_csrf_cookie
 def show_experience(request):
-    """Deserialize and display experience data."""
-    json_response = get_experiences_json(request)
-
-    experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experience_list = [
-        experience.object
-        for experience in experiences
-    ]
-
+    """Display the Experience page before AJAX loads its data."""
     context = {
         "name": "Rindu Maharani Nadhirah",
-        "experience_list": experience_list,
         "experience_categories": Experience.EXPERIENCE_CHOICES,
         "search_query": request.GET.get("search", "").strip(),
         "category_query": request.GET.get(

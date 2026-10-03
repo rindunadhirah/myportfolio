@@ -3,7 +3,6 @@ from datetime import date
 from django.contrib.auth.models import Group, User
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.utils.html import escape
 from main.models import Experience, Project
 from main.forms import ExperienceForm, ProjectForm
 
@@ -95,30 +94,45 @@ class MainTest(TestCase):
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
+        json_response = self.client.get(
+            reverse("main:get_experiences_json")
+        )
+        experience = json_response.json()[0]["fields"]
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        for responsibility in self.experience.responsibilities:
-            self.assertContains(response, escape(responsibility))
-        self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Ongoing")
+        self.assertContains(response, 'id="experience-loading"')
+        self.assertContains(response, 'id="experience-grid"')
+        self.assertNotContains(response, self.experience.title)
+        self.assertEqual(experience["title"], self.experience.title)
+        self.assertEqual(
+            experience["responsibilities"],
+            self.experience.responsibilities,
+        )
+        self.assertEqual(experience["category_label"], "Part-Time")
+        self.assertTrue(experience["is_ongoing"])
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
 
     def test_empty_experience_page(self):
         Experience.objects.all().delete()
-        response = self.client.get(reverse("main:show_experience"))
+        response = self.client.get(
+            reverse("main:get_experiences_json")
+        )
 
-        self.assertContains(response, "No experience has been added yet.")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
 
     def test_completed_experience(self):
         self.experience.ended_on = date(2026, 8, 31)
         self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
+        response = self.client.get(
+            reverse("main:get_experiences_json")
+        )
+        experience = response.json()[0]["fields"]
 
         self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Completed")
-        self.assertNotContains(response, "Ongoing")
+        self.assertFalse(experience["is_ongoing"])
+        self.assertEqual(experience["ended_on"], "2026-08-31")
 
 
 class ExperienceWorkflowTest(TestCase):
@@ -176,18 +190,20 @@ class ExperienceWorkflowTest(TestCase):
             self.experience.title,
         )
 
-    def test_experience_page_uses_deserialized_data(self):
-        # The page receives a list created from deserialized JSON
+    def test_experience_page_uses_ajax_structure(self):
+        # The page contains states that JavaScript updates
         response = self.client.get(
             reverse("main:show_experience")
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(
-            response.context["experience_list"],
-            list,
-        )
-        self.assertContains(response, self.experience.title)
+        self.assertNotIn("experience_list", response.context)
+        self.assertContains(response, 'id="experience-loading"')
+        self.assertContains(response, 'id="experience-error"')
+        self.assertContains(response, 'id="experience-empty"')
+        self.assertContains(response, 'id="experience-grid"')
+        self.assertContains(response, "js/experience.js")
+        self.assertNotContains(response, self.experience.title)
 
     def test_create_experience(self):
         # Submit valid data through ExperienceForm
@@ -280,18 +296,15 @@ class ExperienceWorkflowTest(TestCase):
         )
 
         response = self.client.get(
-            reverse("main:show_experience"),
+            reverse("main:get_experiences_json"),
             {"category": "internship"},
         )
+        titles = [
+            item["fields"]["title"]
+            for item in response.json()
+        ]
 
-        self.assertContains(
-            response,
-            self.experience.title,
-        )
-        self.assertNotContains(
-            response,
-            "Volunteer Experience",
-        )
+        self.assertEqual(titles, [self.experience.title])
 
 
 class ProjectPageTest(TestCase):
@@ -796,13 +809,13 @@ class AssignmentFourAccessTest(TestCase):
             visitor_experiences,
             "Add Experience",
         )
-        self.assertNotContains(
+        self.assertContains(
             visitor_experiences,
-            "Edit Experience",
+            'data-is-editor="false"',
         )
-        self.assertNotContains(
+        self.assertContains(
             visitor_experiences,
-            "Delete Experience",
+            'data-is-superuser="false"',
         )
 
         # Editors can update but cannot create or delete
@@ -819,17 +832,17 @@ class AssignmentFourAccessTest(TestCase):
             editor_projects,
             'popovertarget="add-project-modal"',
         )
-        self.assertContains(
-            editor_experiences,
-            "Edit Experience",
-        )
         self.assertNotContains(
             editor_experiences,
             "Add Experience",
         )
-        self.assertNotContains(
+        self.assertContains(
             editor_experiences,
-            "Delete Experience",
+            'data-is-editor="true"',
+        )
+        self.assertContains(
+            editor_experiences,
+            'data-is-superuser="false"',
         )
 
         # The owner receives create and delete controls
@@ -852,11 +865,7 @@ class AssignmentFourAccessTest(TestCase):
         )
         self.assertContains(
             owner_experiences,
-            "Edit Experience",
-        )
-        self.assertContains(
-            owner_experiences,
-            "Delete Experience",
+            'data-is-superuser="true"',
         )
 
     def test_project_search_and_role_filter_work_together(self):
@@ -902,12 +911,15 @@ class AssignmentFourAccessTest(TestCase):
         )
 
         response = self.client.get(
-            reverse("main:show_experience"),
+            reverse("main:get_experiences_json"),
             {"search": "Test Organization", "category": "program"},
         )
+        titles = [
+            item["fields"]["title"]
+            for item in response.json()
+        ]
 
-        self.assertContains(response, self.experience.title)
-        self.assertNotContains(response, "Volunteer Designer")
+        self.assertEqual(titles, [self.experience.title])
 
     def test_login_cookie_and_logout_session(self):
         # Login creates a session and records the latest login time
