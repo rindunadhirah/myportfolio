@@ -1,10 +1,17 @@
-from django.forms import ModelForm, TextInput, Textarea, URLInput, DateInput
+import json
+
+from django.forms import (
+    CharField,
+    DateInput,
+    ModelForm,
+    Textarea,
+    TextInput,
+    URLInput,
+)
 from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
 
 from main.models import Experience, Project
-
-
 
 class ProjectForm(ModelForm):
     class Meta:
@@ -146,6 +153,20 @@ class ProjectForm(ModelForm):
 
 # Form for creating and updating experience data
 class ExperienceForm(ModelForm):
+    responsibilities = CharField(
+        label="Responsibilities",
+        help_text="Write one responsibility per line.",
+        widget=Textarea(
+            attrs={
+                "placeholder": (
+                    "Prepared product requirements\n"
+                    "Coordinated with the development team"
+                ),
+                "rows": 4,
+            }
+        ),
+    )
+
     class Meta:
         model = Experience
 
@@ -191,15 +212,6 @@ class ExperienceForm(ModelForm):
                     "rows": 4,
                 }
             ),
-            "responsibilities": Textarea(
-                attrs={
-                    "placeholder": (
-                        '["First responsibility", '
-                        '"Second responsibility"]'
-                    ),
-                    "rows": 4,
-                }
-            ),
             "thumbnail": URLInput(
                 attrs={
                     "placeholder": "https://example.com/image.jpg",
@@ -218,6 +230,44 @@ class ExperienceForm(ModelForm):
                 },
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        """Show stored responsibilities as readable lines."""
+        super().__init__(*args, **kwargs)
+        responsibilities = self.initial.get("responsibilities")
+
+        if isinstance(responsibilities, list):
+            self.initial["responsibilities"] = "\n".join(
+                str(item) for item in responsibilities
+            )
+
+    def clean_responsibilities(self):
+        """Convert responsibility lines into a safe list."""
+        raw_value = self.cleaned_data["responsibilities"].strip()
+
+        # Keep older JSON input compatible with the new simple format
+        try:
+            parsed_value = json.loads(raw_value)
+        except json.JSONDecodeError:
+            parsed_value = raw_value.splitlines()
+
+        if not isinstance(parsed_value, list):
+            raise ValidationError(
+                "Write one responsibility per line."
+            )
+
+        responsibilities = [
+            strip_tags(str(item)).strip()
+            for item in parsed_value
+            if strip_tags(str(item)).strip()
+        ]
+
+        if not responsibilities:
+            raise ValidationError(
+                "Add at least one responsibility."
+            )
+
+        return responsibilities
 
     def clean(self):
         """Check that the Experience date range is valid."""
