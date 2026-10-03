@@ -1,9 +1,8 @@
 const experienceApp = document.getElementById("experience-app");
 
 if (experienceApp) {
-    const PLACEHOLDER_ID =
-        "00000000-0000-0000-0000-000000000000";
     const SEARCH_DELAY = 300;
+    const { fillUrl, getCookie } = window.ajaxUtils;
 
     const config = {
         endpoint: experienceApp.dataset.experiencesEndpoint,
@@ -49,30 +48,6 @@ if (experienceApp) {
 
     let searchTimer;
     let experienceController;
-
-    // Read a cookie value, including Django's CSRF token
-    function getCookie(name) {
-        const cookies = document.cookie
-            ? document.cookie.split(";")
-            : [];
-
-        for (const item of cookies) {
-            const cookie = item.trim();
-
-            if (cookie.startsWith(`${name}=`)) {
-                return decodeURIComponent(
-                    cookie.substring(name.length + 1)
-                );
-            }
-        }
-
-        return null;
-    }
-
-    // Insert an Experience UUID into a Django URL
-    function createExperienceUrl(template, experienceId) {
-        return template.replace(PLACEHOLDER_ID, experienceId);
-    }
 
     // Format a stored date for the card
     function formatMonthYear(dateValue) {
@@ -144,7 +119,7 @@ if (experienceApp) {
             : "Star";
 
         form.method = "post";
-        form.action = createExperienceUrl(
+        form.action = fillUrl(
             config.starUrlTemplate,
             experienceId
         );
@@ -189,7 +164,7 @@ if (experienceApp) {
         }
 
         const editLink = document.createElement("a");
-        editLink.href = createExperienceUrl(
+        editLink.href = fillUrl(
             config.updateUrlTemplate,
             experienceId
         );
@@ -273,7 +248,7 @@ if (experienceApp) {
         cancelButton.setAttribute("popovertargetaction", "hide");
 
         deleteForm.method = "post";
-        deleteForm.action = createExperienceUrl(
+        deleteForm.action = fillUrl(
             config.deleteUrlTemplate,
             experienceId
         );

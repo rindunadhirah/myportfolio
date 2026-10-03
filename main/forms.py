@@ -241,6 +241,43 @@ class ExperienceForm(ModelForm):
                 str(item) for item in responsibilities
             )
 
+    def clean_title(self):
+        """Store the role title without HTML tags."""
+        title = strip_tags(self.cleaned_data["title"]).strip()
+
+        if not title:
+            raise ValidationError(
+                "Role title cannot contain only HTML tags."
+            )
+
+        return title
+
+    def clean_organization(self):
+        """Store the organization without HTML tags."""
+        organization = strip_tags(
+            self.cleaned_data["organization"]
+        ).strip()
+
+        if not organization:
+            raise ValidationError(
+                "Organization cannot contain only HTML tags."
+            )
+
+        return organization
+
+    def clean_description(self):
+        """Store the description without HTML tags."""
+        description = strip_tags(
+            self.cleaned_data["description"]
+        ).strip()
+
+        if not description:
+            raise ValidationError(
+                "Description cannot contain only HTML tags."
+            )
+
+        return description
+
     def clean_responsibilities(self):
         """Convert responsibility lines into a safe list."""
         raw_value = self.cleaned_data["responsibilities"].strip()

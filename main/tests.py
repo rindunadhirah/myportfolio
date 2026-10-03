@@ -450,7 +450,7 @@ class ProjectPageTest(TestCase):
         self.assertContains(response, 'id="empty"')
         self.assertContains(response, 'id="project-grid"')
         self.assertContains(response, "function fetchProjects")
-        self.assertContains(response, "function escapeHtml")
+        self.assertContains(response, "js/ajax-utils.js")
 
     def test_empty_projects_json(self):
         Project.objects.all().delete()
@@ -1127,7 +1127,7 @@ class TutorialFiveAjaxTest(TestCase):
         self.assertIn("csrftoken", response.cookies)
         self.assertContains(response, "toast-component")
         self.assertContains(response, "function fetchProjects")
-        self.assertContains(response, "function escapeHtml")
+        self.assertContains(response, "js/ajax-utils.js")
 
     def test_json_includes_star_count_and_current_user_status(self):
         self.project.starred_by.add(self.regular_user)
