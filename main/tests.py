@@ -92,6 +92,33 @@ class MainTest(TestCase):
             form.errors["ended_on"],
         )
 
+    def test_experience_responsibilities_accept_plain_lines(self):
+        # Users can enter one responsibility on each line
+        form = ExperienceForm(
+            data={
+                "title": "Product Management Intern",
+                "organization": "Test Organization",
+                "description": "Test experience.",
+                "responsibilities": (
+                    "Prepared product requirements\n"
+                    "Coordinated with the development team"
+                ),
+                "category": "internship",
+                "thumbnail": "",
+                "started_on": "2026-09-01",
+                "ended_on": "2026-09-10",
+            }
+        )
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(
+            form.cleaned_data["responsibilities"],
+            [
+                "Prepared product requirements",
+                "Coordinated with the development team",
+            ],
+        )
+
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
         json_response = self.client.get(
@@ -165,9 +192,7 @@ class ExperienceWorkflowTest(TestCase):
             "title": "Product Management Mentee",
             "organization": "RISTEK Fasilkom UI",
             "description": "Learned product management.",
-            "responsibilities": (
-                '["Prepared product requirements."]'
-            ),
+            "responsibilities": "Prepared product requirements.",
             "category": "program",
             "thumbnail": "",
             "started_on": "2026-07-01",
@@ -203,7 +228,10 @@ class ExperienceWorkflowTest(TestCase):
         self.assertContains(response, 'id="experience-empty"')
         self.assertContains(response, 'id="experience-grid"')
         self.assertContains(response, "js/experience.js")
-        self.assertNotContains(response, self.experience.title)
+        self.assertNotContains(
+            response,
+            '<article class="experience-card">',
+        )
 
     def test_create_experience(self):
         # Submit valid data through ExperienceForm
@@ -225,6 +253,73 @@ class ExperienceWorkflowTest(TestCase):
         self.assertContains(
             response,
             "Experience added successfully.",
+        )
+
+    def test_owner_can_create_experience_with_ajax(self):
+        # The AJAX endpoint creates valid Experience data
+        response = self.client.post(
+            reverse("main:create_experience_ajax"),
+            data=self.experience_form_data(),
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(
+            Experience.objects.filter(
+                title="Product Management Mentee",
+            ).exists()
+        )
+        self.assertEqual(
+            response.json()["message"],
+            "Experience added successfully.",
+        )
+
+    def test_ajax_experience_creation_returns_form_errors(self):
+        # Invalid dates return JSON errors without saving data
+        response = self.client.post(
+            reverse("main:create_experience_ajax"),
+            data=self.experience_form_data(
+                started_on="2026-09-10",
+                ended_on="2026-09-01",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("ended_on", response.json()["errors"])
+        self.assertFalse(
+            Experience.objects.filter(
+                title="Product Management Mentee",
+            ).exists()
+        )
+
+    def test_visitor_cannot_create_experience_with_ajax(self):
+        # Backend permission protects the AJAX endpoint
+        self.client.logout()
+        response = self.client.post(
+            reverse("main:create_experience_ajax"),
+            data=self.experience_form_data(),
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(
+            Experience.objects.filter(
+                title="Product Management Mentee",
+            ).exists()
+        )
+
+    def test_owner_receives_experience_modal(self):
+        # Only the owner receives the add form and its AJAX URL
+        response = self.client.get(
+            reverse("main:show_experience")
+        )
+
+        self.assertContains(
+            response,
+            'popovertarget="add-experience-modal"',
+        )
+        self.assertContains(response, 'id="experience-form"')
+        self.assertContains(
+            response,
+            reverse("main:create_experience_ajax"),
         )
 
     def test_update_experience(self):

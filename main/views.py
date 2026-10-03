@@ -291,6 +291,7 @@ def show_experience(request):
             "",
         ).strip(),
         "is_editor": user_is_editor(request.user),
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
@@ -320,6 +321,39 @@ def create_experience(request):
         "submit_label": "Add Experience",
     }
     return render(request, "experience_form.html", context)
+
+
+@require_POST
+def create_experience_ajax(request):
+    """Create an experience and return a JSON response."""
+    # Return JSON instead of redirecting unauthorized users
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {
+                "message": (
+                    "Only the portfolio owner can add experiences."
+                )
+            },
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+
+    if form.is_valid():
+        experience = form.save()
+
+        return JsonResponse(
+            {
+                "message": "Experience added successfully.",
+                "pk": str(experience.id),
+            },
+            status=201,
+        )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )
 
 
 @login_required(login_url="main:login")

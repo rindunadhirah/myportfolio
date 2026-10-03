@@ -7,6 +7,8 @@ if (experienceApp) {
 
     const config = {
         endpoint: experienceApp.dataset.experiencesEndpoint,
+        createEndpoint:
+            experienceApp.dataset.createExperienceEndpoint,
         loginUrl: experienceApp.dataset.loginUrl,
         starUrlTemplate: experienceApp.dataset.starUrlTemplate,
         updateUrlTemplate: experienceApp.dataset.updateUrlTemplate,
@@ -40,6 +42,9 @@ if (experienceApp) {
     );
     const experienceGrid = document.getElementById(
         "experience-grid"
+    );
+    const experienceForm = document.getElementById(
+        "experience-form"
     );
 
     let searchTimer;
@@ -468,6 +473,152 @@ if (experienceApp) {
         }
     }
 
+    function closeExperienceModal() {
+        const modal = document.getElementById(
+            "add-experience-modal"
+        );
+
+        if (modal?.matches(":popover-open")) {
+            modal.hidePopover();
+        }
+    }
+
+    // Keep the end date on or after the start date
+    function syncExperienceDates() {
+        if (!experienceForm) {
+            return;
+        }
+
+        const startInput = experienceForm.querySelector(
+            '[name="started_on"]'
+        );
+        const endInput = experienceForm.querySelector(
+            '[name="ended_on"]'
+        );
+
+        if (!startInput || !endInput) {
+            return;
+        }
+
+        endInput.min = startInput.value;
+
+        if (
+            startInput.value
+            && endInput.value
+            && endInput.value < startInput.value
+        ) {
+            endInput.setCustomValidity(
+                "End date cannot be earlier than start date."
+            );
+        } else {
+            endInput.setCustomValidity("");
+        }
+    }
+
+    function clearExperienceErrors() {
+        experienceForm
+            .querySelectorAll("[data-ajax-error]")
+            .forEach((error) => error.remove());
+        experienceForm
+            .querySelectorAll('[aria-invalid="true"]')
+            .forEach((field) => {
+                field.removeAttribute("aria-invalid");
+            });
+    }
+
+    // Show each server error below the related field
+    function displayExperienceErrors(errors) {
+        const messages = [];
+        let firstInvalidField = null;
+
+        for (const [fieldName, fieldErrors] of Object.entries(errors)) {
+            const field = experienceForm.elements.namedItem(fieldName);
+            const fieldGroup = field?.closest(".form-group");
+            const fieldLabel = fieldGroup
+                ?.querySelector("label")
+                ?.textContent.trim() || "Form";
+
+            for (const error of fieldErrors) {
+                const message = error.message;
+                messages.push(`${fieldLabel}: ${message}`);
+
+                if (fieldGroup) {
+                    const errorElement = document.createElement("p");
+                    errorElement.className = "form-error";
+                    errorElement.dataset.ajaxError = "true";
+                    errorElement.textContent = message;
+                    fieldGroup.appendChild(errorElement);
+                }
+            }
+
+            if (field) {
+                field.setAttribute("aria-invalid", "true");
+                firstInvalidField ||= field;
+            }
+        }
+
+        firstInvalidField?.focus();
+        return messages;
+    }
+
+    // Create an experience without reloading the page
+    async function addExperience(event) {
+        event.preventDefault();
+        clearExperienceErrors();
+
+        const submitButton = experienceForm.querySelector(
+            'button[type="submit"]'
+        );
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(config.createEndpoint, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken") || "",
+                },
+                body: new FormData(experienceForm),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                experienceForm.reset();
+                syncExperienceDates();
+                closeExperienceModal();
+                window.showToast(
+                    "Experience added",
+                    "The new experience was added successfully.",
+                    "success"
+                );
+                fetchExperiences();
+            } else {
+                const messages = result.errors
+                    ? displayExperienceErrors(result.errors)
+                    : [
+                        result.message
+                        || `Request failed with status ${response.status}.`,
+                    ];
+
+                window.showToast(
+                    "Experience could not be added",
+                    messages.join("\n"),
+                    "error",
+                    5000
+                );
+            }
+        } catch (error) {
+            console.error("Unable to add experience:", error);
+            window.showToast(
+                "Connection error",
+                "The server could not be reached. Please try again.",
+                "error",
+                5000
+            );
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
     // Wait briefly after typing before sending a request
     searchInput.addEventListener("input", () => {
         clearTimeout(searchTimer);
@@ -489,5 +640,37 @@ if (experienceApp) {
     });
 
     retryButton.addEventListener("click", fetchExperiences);
+
+    if (experienceForm) {
+        const startInput = experienceForm.querySelector(
+            '[name="started_on"]'
+        );
+        const endInput = experienceForm.querySelector(
+            '[name="ended_on"]'
+        );
+
+        startInput?.addEventListener(
+            "change",
+            syncExperienceDates
+        );
+        endInput?.addEventListener(
+            "change",
+            syncExperienceDates
+        );
+        experienceForm.addEventListener(
+            "submit",
+            addExperience
+        );
+        experienceForm.addEventListener("input", (event) => {
+            const fieldGroup = event.target.closest(".form-group");
+
+            event.target.removeAttribute("aria-invalid");
+            fieldGroup
+                ?.querySelectorAll("[data-ajax-error]")
+                .forEach((error) => error.remove());
+        });
+        syncExperienceDates();
+    }
+
     fetchExperiences();
 }
