@@ -29,6 +29,7 @@ This website introduces my background, skills, projects, experience, and educati
 - **SQLite:** Stores project and experience information.
 - **HTML5:** Provides the semantic structure of the portfolio.
 - **CSS3:** Controls the colors, layouts, responsiveness, hover effects, and animations.
+- **JavaScript and Fetch API:** Load, search, and add portfolio data without reloading the page.
 - **Git and GitHub:** Track the project's development and commit history.
 
 ## Running the Project Locally
@@ -172,6 +173,22 @@ python manage.py test main
 - Limited public JSON fields so account and star information is not exposed.
 - Added automated tests for authentication, permissions, stars, JSON safety, sessions, cookies, search, and filters.
 
+### Week 6 - Tutorial 5 and Assignment 5
+
+- Changed the Projects and Experience pages to load data through AJAX.
+- Built their JSON responses manually with star information for the current user.
+- Added loading, empty, and error states for AJAX requests.
+- Added project and experience search without reloading the page.
+- Used debouncing to wait briefly before sending search requests.
+- Added modal forms that create projects and experiences through AJAX.
+- Refreshed the card lists after successful form submissions.
+- Displayed success, connection, permission, and validation messages using toast notifications.
+- Displayed Experience form errors below the related fields.
+- Kept owner permissions, CSRF protection, and server validation on AJAX requests.
+- Protected AJAX content from XSS using `textContent`, HTML escaping, and `strip_tags`.
+- Moved shared AJAX helpers into one reusable JavaScript file.
+- Added automated tests for AJAX responses, permissions, CSRF, validation, stars, and XSS protection.
+
 ## Reflective Questions
 
 ### Assignment 1
@@ -232,13 +249,27 @@ python manage.py test main
 
    Serialization is required because Django model objects are Python objects and cannot be sent directly through an HTTP response. They must first be converted into a transferable data format such as JSON.
 
+### Assignment 5
+
+1. Debouncing means waiting for the user to stop typing before sending a search request. My search waits for 300 milliseconds after the latest input. If the user types again during that time, the previous timer is cancelled and a new timer starts.
+
+   This prevents the website from sending one request for every letter. It reduces unnecessary work for the browser and server. It also lowers the chance that an older response will replace a newer search result.
+
+2. `fetch()` returns a Promise because the server response is not available immediately. `await` pauses the current asynchronous function until that Promise finishes. I use it first to wait for the HTTP response and again to wait for the JSON body.
+
+   Without `await`, the variable would contain a Promise instead of the completed response or JSON data. The code could not correctly read properties such as `response.ok` or build cards from the returned data. Only the current asynchronous function waits, so the rest of the page can still respond to the user.
+
+3. Cross-Site Scripting or XSS happens when unsafe user input is treated as executable HTML or JavaScript. An attacker could save a script or an image with an `onerror` event and make it run in another visitor's browser.
+
+   Django templates escape variables automatically. AJAX pages can be more vulnerable when JavaScript places server data into `innerHTML`, because unsafe text may be interpreted as HTML. My Experience page creates elements and uses `textContent` for data. The shared helper escapes values used by the Projects page, and the ModelForms remove HTML tags before saving text. These checks protect both the browser and the server data.
+
 ## AI Use and Prompt History
 
 ### AI Disclosure
 
 I used OpenAI Codex as a guide while working on this assignment. It helped me understand the assignment rubric, plan the HTML sections, write readable CSS, and check responsive layouts.
 
-I asked the AI to give code in small steps and explain where each block should be placed. I typed the changes into my project, tested them in the browser, and committed them myself. I also changed several AI suggestions when they did not match the assignment rules, my real project information, or my design preferences.
+I asked the AI to give code in small steps and explain where each block should be placed. For Assignments 1 to 4, I typed most changes into my project. For Assignment 5, I allowed Codex to edit the files directly, then I reviewed the changes, tested them in the browser, and created the commits myself. I also changed several AI suggestions when they did not match the assignment rules, my real project information, or my design preferences.
 
 ### Prompt Strategy
 
@@ -267,6 +298,9 @@ The following table contains shortened versions of the main prompts used during 
 | Plan Assignment 4 | Create a roadmap for authentication, access roles, stars, security, tests, Git commits, and documentation. | I compared the roadmap with the rubric and implemented each requirement gradually. |
 | Align user permissions | Give Projects and Experience the same abilities for visitors, regular users, Editors, and the portfolio owner. | I checked each role and kept create, update, delete, and star permissions consistent. |
 | Test access control | Add tests for user roles, stars, POST requests, CSRF, JSON safety, sessions, cookies, search, and filters. | I ran all 32 tests and corrected indentation problems before committing. |
+| Plan Assignment 5 | Apply the Tutorial 5 AJAX pattern to Experience and divide the work into clear commits. | I compared the plan with the checklist and tested each completed feature before committing it. |
+| Improve form feedback | Explain why the Experience form only says that the Responsibilities value is invalid. | I found that the field expected JSON, changed it to one responsibility per line, and checked the clearer field errors. |
+| Debug missing projects | Find why the Projects page became empty after moving AJAX helpers into a shared file. | I tested the page, found a JavaScript name conflict, and verified that the cards returned after the helper was scoped correctly. |
 
 ### AI Limitations and My Manual Fixes
 
@@ -287,5 +321,7 @@ The AI was useful, but its answers were not always correct or suitable for my as
 - The AI initially placed some test methods inside other test methods because of incorrect indentation. I checked the test count, corrected the indentation, and confirmed that all tests were discovered.
 - I questioned how the Editor role should work instead of applying it immediately. I checked the assignment again and confirmed that Django Group membership is allowed.
 - The account menu initially made the navigation bar too wide. I tested the page and adjusted the layout so the main navigation remained compact.
+- The first Experience modal expected Responsibilities to be written as JSON. I found this confusing during manual testing, so I changed the form to accept one normal sentence per line.
+- Moving AJAX helpers into one file initially caused a JavaScript name conflict and stopped the Projects cards from loading. I noticed the empty page, reported it, and confirmed that the fix restored the cards.
 
 In conclusion, AI helped me with ideas and explanations, but I still check the original assignment, confirm facts, understand the code, and test the result myself.
