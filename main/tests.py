@@ -1245,3 +1245,161 @@ class TutorialFiveAjaxTest(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("title", form.errors)
+
+
+class AssignmentFiveAjaxTest(TestCase):
+    def setUp(self):
+        Experience.objects.all().delete()
+        self.owner = User.objects.create_superuser(
+            username="experience-owner",
+            password="test-password",
+        )
+        self.regular_user = User.objects.create_user(
+            username="experience-user",
+            password="test-password",
+        )
+        self.experience = Experience.objects.create(
+            title="AJAX Test Experience",
+            organization="Test Organization",
+            description="An experience used to test AJAX.",
+            responsibilities=["Implemented AJAX interactions."],
+            category="program",
+            started_on=date(2026, 9, 1),
+        )
+
+    def experience_form_data(self, **changes):
+        """Return valid ExperienceForm data with optional changes."""
+        data = {
+            "title": "New AJAX Experience",
+            "organization": "Test Organization",
+            "description": "Created without reloading the page.",
+            "responsibilities": (
+                "Prepared product requirements\n"
+                "Coordinated with the development team"
+            ),
+            "category": "program",
+            "thumbnail": "",
+            "started_on": "2026-09-01",
+            "ended_on": "",
+        }
+        data.update(changes)
+        return data
+
+    def test_experience_page_sets_csrf_cookie(self):
+        response = self.client.get(
+            reverse("main:show_experience")
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("csrftoken", response.cookies)
+        self.assertContains(response, "js/ajax-utils.js")
+        self.assertContains(response, "js/experience.js")
+        self.assertContains(response, 'id="experience-loading"')
+        self.assertContains(response, 'id="experience-empty"')
+        self.assertContains(response, 'id="experience-error"')
+
+    def test_experience_json_includes_star_information(self):
+        self.experience.starred_by.add(self.regular_user)
+        self.client.force_login(self.regular_user)
+
+        response = self.client.get(
+            reverse("main:get_experiences_json")
+        )
+        fields = response.json()[0]["fields"]
+
+        self.assertEqual(fields["star_count"], 1)
+        self.assertTrue(fields["is_starred"])
+        self.assertNotIn("starred_by", fields)
+
+    def test_experience_ajax_requires_post_and_csrf(self):
+        url = reverse("main:create_experience_ajax")
+        self.client.force_login(self.owner)
+
+        self.assertEqual(self.client.get(url).status_code, 405)
+
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.owner)
+        response = csrf_client.post(
+            url,
+            data=self.experience_form_data(),
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_experience_ajax_rejects_non_owner(self):
+        url = reverse("main:create_experience_ajax")
+
+        visitor_response = self.client.post(
+            url,
+            data=self.experience_form_data(),
+        )
+        self.client.force_login(self.regular_user)
+        user_response = self.client.post(
+            url,
+            data=self.experience_form_data(),
+        )
+
+        self.assertEqual(visitor_response.status_code, 403)
+        self.assertEqual(user_response.status_code, 403)
+
+    def test_owner_can_create_experience_with_ajax(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            reverse("main:create_experience_ajax"),
+            data=self.experience_form_data(),
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertIn("pk", response.json())
+        self.assertTrue(
+            Experience.objects.filter(
+                title="New AJAX Experience",
+            ).exists()
+        )
+
+    def test_experience_ajax_returns_form_errors(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            reverse("main:create_experience_ajax"),
+            data=self.experience_form_data(
+                started_on="2026-09-10",
+                ended_on="2026-09-01",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("ended_on", response.json()["errors"])
+        self.assertFalse(
+            Experience.objects.filter(
+                title="New AJAX Experience",
+            ).exists()
+        )
+
+    def test_experience_form_removes_html_tags(self):
+        form = ExperienceForm(
+            data=self.experience_form_data(
+                title="Product <b>Manager</b>",
+                organization="<i>Test Organization</i>",
+                description=(
+                    "<script>alert('x')</script>Safe description."
+                ),
+                responsibilities=(
+                    "<img src='x' onerror='alert(1)'>"
+                    "Prepared documentation"
+                ),
+            )
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        experience = form.save()
+
+        self.assertEqual(experience.title, "Product Manager")
+        self.assertEqual(
+            experience.organization,
+            "Test Organization",
+        )
+        self.assertNotIn("<script>", experience.description)
+        self.assertEqual(
+            experience.responsibilities,
+            ["Prepared documentation"],
+        )
