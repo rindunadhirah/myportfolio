@@ -18,12 +18,12 @@
             class="experience-section experience-page"
             id="experience-app"
             aria-labelledby="experience-title"
-            data-experiences-endpoint="{% url 'main:get_experiences_json' %}"
-            data-create-experience-endpoint="{% url 'main:create_experience_ajax' %}"
+            data-experiences-endpoint="{% url 'api:experience-list' %}"
+            data-create-experience-endpoint="{% url 'api:experience-list' %}"
             data-login-url="{% url 'main:login' %}"
-            data-star-url-template="{% url 'main:toggle_experience_star' '00000000-0000-0000-0000-000000000000' %}"
+            data-star-url-template="{% url 'api:experience-star' '00000000-0000-0000-0000-000000000000' %}"
+            data-detail-url-template="{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}"
             data-update-url-template="{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}"
-            data-delete-url-template="{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}"
             data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
             data-is-superuser="{{ user.is_superuser|yesno:'true,false' }}"
             data-is-editor="{{ is_editor|yesno:'true,false' }}"
@@ -152,6 +152,8 @@
     {% if user.is_superuser %}
         {% include "components/experience_form_modal.html" %}
     {% endif %}
+
+    {% csrf_token %}
 
     <script src="{% static 'js/experience.js' %}"></script>
 {% endblock content %}

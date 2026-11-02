@@ -138,6 +138,7 @@ class ExperienceSerializer(
     is_starred = serializers.SerializerMethodField()
     starred_by_names = serializers.SerializerMethodField()
     is_ongoing = serializers.SerializerMethodField()
+    category_label = serializers.SerializerMethodField()
 
     class Meta:
         model = Experience
@@ -148,6 +149,7 @@ class ExperienceSerializer(
             "description",
             "responsibilities",
             "category",
+            "category_label",
             "thumbnail",
             "started_on",
             "ended_on",
@@ -225,3 +227,6 @@ class ExperienceSerializer(
 
     def get_is_ongoing(self, obj):
         return obj.is_ongoing
+
+    def get_category_label(self, obj):
+        return obj.get_category_display()
