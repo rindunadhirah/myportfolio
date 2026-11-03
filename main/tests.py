@@ -319,7 +319,7 @@ class ExperienceWorkflowTest(TestCase):
         self.assertContains(response, 'id="experience-form"')
         self.assertContains(
             response,
-            reverse("main:create_experience_ajax"),
+            reverse("api:experience-list"),
         )
 
     def test_update_experience(self):

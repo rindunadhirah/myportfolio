@@ -36,10 +36,63 @@
         return template.replace(AJAX_URL_PLACEHOLDER, objectId);
     }
 
+    // Turn DRF error responses into one readable message
+    function apiErrorMessage(data, status) {
+        const messages = [];
+
+        function collect(value) {
+            if (Array.isArray(value)) {
+                value.forEach(collect);
+            } else if (value && typeof value === "object") {
+                Object.values(value).forEach(collect);
+            } else if (typeof value === "string") {
+                messages.push(value);
+            }
+        }
+
+        collect(data);
+        return messages.join(" ")
+            || `Request failed with status ${status}.`;
+    }
+
+    // Send a JSON write request with Django's CSRF token
+    async function writeJson(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken") || "",
+            },
+            body: payload === undefined
+                ? undefined
+                : JSON.stringify(payload),
+        });
+
+        if (response.status === 204) {
+            return null;
+        }
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const error = new Error(
+                apiErrorMessage(data, response.status)
+            );
+            error.data = data;
+            error.status = response.status;
+            throw error;
+        }
+
+        return data;
+    }
+
     // Expose one object without adding duplicate global names
     window.ajaxUtils = Object.freeze({
+        apiErrorMessage,
         escapeHtml,
         fillUrl,
         getCookie,
+        writeJson,
     });
 })();

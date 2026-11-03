@@ -109,12 +109,18 @@
         {% include "components/project_form_modal.html" %}
     {% endif %}
 
+    {% csrf_token %}
+
     <script>
-        // Django endpoints and current user permissions
-        const PROJECTS_ENDPOINT =
-            "{% url 'main:get_projects_json' %}";
-        const CREATE_PROJECT_ENDPOINT =
-            "{% url 'main:create_project_ajax' %}";
+        // DRF endpoints and current user permissions
+        const BASE_PROJECTS_ENDPOINT =
+            "{% url 'api:project-list' %}";
+        const DETAIL_PROJECT_ENDPOINT =
+            "{% url 'api:project-detail' '00000000-0000-0000-0000-000000000000' %}";
+        const STAR_PROJECT_ENDPOINT =
+            "{% url 'api:project-star' '00000000-0000-0000-0000-000000000000' %}";
+        const UPDATE_PROJECT_PAGE =
+            "{% url 'main:update_project' '00000000-0000-0000-0000-000000000000' %}";
         const STATIC_PREFIX = "{% get_static_prefix %}";
         const LOGIN_URL = "{% url 'main:login' %}";
         const IS_AUTHENTICATED =
@@ -123,13 +129,6 @@
             "{{ user.is_superuser|yesno:'true,false' }}" === "true";
         const IS_EDITOR =
             "{{ is_editor|yesno:'true,false' }}" === "true";
-
-        const STAR_URL_TEMPLATE =
-            "{% url 'main:toggle_project_star' '00000000-0000-0000-0000-000000000000' %}";
-        const UPDATE_URL_TEMPLATE =
-            "{% url 'main:update_project' '00000000-0000-0000-0000-000000000000' %}";
-        const DELETE_URL_TEMPLATE =
-            "{% url 'main:delete_project' '00000000-0000-0000-0000-000000000000' %}";
 
         const SEARCH_DELAY = 300;
         let searchTimer;
@@ -146,7 +145,7 @@
         const searchInput = document.getElementById("search-input");
         const roleFilter = document.getElementById("role-filter");
         const projectForm = document.getElementById("project-form");
-        const { escapeHtml, fillUrl, getCookie } =
+        const { escapeHtml, fillUrl, writeJson } =
             window.ajaxUtils;
 
         // Display only the requested Projects page section
@@ -162,7 +161,7 @@
             projectGrid.classList.toggle("hide", !showGrid);
         }
 
-        function buildStarHtml(project, projectId) {
+        function buildStarHtml(project) {
             const starCount = Number(project.star_count) || 0;
 
             if (!IS_AUTHENTICATED) {
@@ -178,10 +177,6 @@
                 `;
             }
 
-            const starUrl = fillUrl(
-                STAR_URL_TEMPLATE,
-                projectId
-            );
             const starText = project.is_starred
                 ? "Unstar"
                 : "Star";
@@ -191,32 +186,23 @@
             const pressedState = project.is_starred
                 ? "true"
                 : "false";
-            const csrfToken = escapeHtml(
-                getCookie("csrftoken") || ""
+            const safeNames = escapeHtml(
+                project.starred_by_names
             );
 
             return `
-                <form
-                    method="post"
-                    action="${starUrl}"
-                    class="star-form"
+                <button
+                    type="button"
+                    class="button button-star${starredClass}"
+                    data-action="star"
+                    data-id="${escapeHtml(project.id)}"
+                    aria-pressed="${pressedState}"
+                    title="${safeNames}"
                 >
-                    <input
-                        type="hidden"
-                        name="csrfmiddlewaretoken"
-                        value="${csrfToken}"
-                    >
-
-                    <button
-                        type="submit"
-                        class="button button-star${starredClass}"
-                        aria-pressed="${pressedState}"
-                    >
-                        <span aria-hidden="true">★</span>
-                        ${starText}
-                        <span class="star-count">${starCount}</span>
-                    </button>
-                </form>
+                    <span aria-hidden="true">★</span>
+                    ${starText}
+                    <span class="star-count">${starCount}</span>
+                </button>
             `;
         }
 
@@ -226,7 +212,7 @@
             }
 
             const updateUrl = fillUrl(
-                UPDATE_URL_TEMPLATE,
+                UPDATE_PROJECT_PAGE,
                 projectId
             );
 
@@ -242,15 +228,9 @@
                 return "";
             }
 
-            const deleteUrl = fillUrl(
-                DELETE_URL_TEMPLATE,
-                projectId
-            );
             const modalId = `delete-project-${projectId}`;
             const safeTitle = escapeHtml(project.title);
-            const csrfToken = escapeHtml(
-                getCookie("csrftoken") || ""
-            );
+            const safeId = escapeHtml(projectId);
 
             return `
                 <div class="project-delete-action">
@@ -309,20 +289,14 @@
                                 Cancel
                             </button>
 
-                            <form method="post" action="${deleteUrl}">
-                                <input
-                                    type="hidden"
-                                    name="csrfmiddlewaretoken"
-                                    value="${csrfToken}"
-                                >
-
-                                <button
-                                    type="submit"
-                                    class="button button-danger"
-                                >
-                                    Yes, Delete
-                                </button>
-                            </form>
+                            <button
+                                type="button"
+                                class="button button-danger"
+                                data-action="delete"
+                                data-id="${safeId}"
+                            >
+                                Yes, Delete
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -330,9 +304,8 @@
         }
 
         // Build one safe project card from JSON data
-        function buildProjectCard(item) {
-            const project = item.fields;
-            const projectId = item.pk;
+        function buildProjectCard(project) {
+            const projectId = project.id;
             const card = document.createElement("article");
             const featuredClass = project.is_featured
                 ? " project-card--featured"
@@ -426,7 +399,7 @@
                 </ul>
 
                 <div class="project-card-actions">
-                    ${buildStarHtml(project, projectId)}
+                    ${buildStarHtml(project)}
                     ${buildEditHtml(projectId)}
                     ${buildDeleteHtml(project, projectId)}
                 </div>
@@ -445,7 +418,7 @@
             displayPageSection({ showLoading: true });
 
             const endpoint = new URL(
-                PROJECTS_ENDPOINT,
+                BASE_PROJECTS_ENDPOINT,
                 window.location.origin
             );
             const title = searchInput.value.trim();
@@ -498,25 +471,21 @@
             }
         }
 
-        function searchProjects() {
-            fetchProjects();
-        }
-
         // Wait until the user briefly stops typing
         searchInput.addEventListener("input", () => {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(
-                searchProjects,
+                fetchProjects,
                 SEARCH_DELAY
             );
         });
 
-        roleFilter.addEventListener("change", searchProjects);
+        roleFilter.addEventListener("change", fetchProjects);
 
         searchForm.addEventListener("submit", (event) => {
             event.preventDefault();
             clearTimeout(searchTimer);
-            searchProjects();
+            fetchProjects();
         });
 
         function closeProjectModal() {
@@ -529,7 +498,25 @@
             }
         }
 
-        // Create a project without reloading the page
+        function buildProjectPayload() {
+            const fields = new FormData(projectForm);
+
+            return {
+                title: fields.get("title"),
+                slug: fields.get("slug"),
+                summary: fields.get("summary"),
+                context: fields.get("context"),
+                role: fields.get("role"),
+                project_url: fields.get("project_url"),
+                image_path: fields.get("image_path"),
+                started_on: fields.get("started_on"),
+                ended_on: fields.get("ended_on") || null,
+                achievement: fields.get("achievement"),
+                is_featured: fields.has("is_featured"),
+            };
+        }
+
+        // Create a project through the DRF API
         async function addProject(event) {
             event.preventDefault();
 
@@ -539,52 +526,24 @@
             submitButton.disabled = true;
 
             try {
-                const response = await fetch(
-                    CREATE_PROJECT_ENDPOINT,
-                    {
-                        method: "POST",
-                        headers: {
-                            "X-CSRFToken":
-                                getCookie("csrftoken") || "",
-                        },
-                        body: new FormData(projectForm),
-                    }
+                await writeJson(
+                    BASE_PROJECTS_ENDPOINT,
+                    "POST",
+                    buildProjectPayload()
                 );
-                const result = await response
-                    .json()
-                    .catch(() => ({}));
-
-                if (response.ok) {
-                    projectForm.reset();
-                    closeProjectModal();
-                    showToast(
-                        "Project added",
-                        "The new project was added successfully.",
-                        "success"
-                    );
-                    fetchProjects();
-                } else {
-                    const messages = result.errors
-                        ? Object.values(result.errors)
-                            .flat()
-                            .map((error) => error.message)
-                        : [
-                            result.message
-                            || `Request failed with status ${response.status}.`,
-                        ];
-
-                    showToast(
-                        "Project could not be added",
-                        messages.join("\n"),
-                        "error",
-                        5000
-                    );
-                }
+                projectForm.reset();
+                closeProjectModal();
+                showToast(
+                    "Project added",
+                    "The new project was added successfully.",
+                    "success"
+                );
+                await fetchProjects();
             } catch (error) {
                 console.error("Unable to add project:", error);
                 showToast(
-                    "Connection error",
-                    "The server could not be reached. Please try again.",
+                    "Project could not be added",
+                    error.message,
                     "error",
                     5000
                 );
@@ -597,7 +556,51 @@
             projectForm.addEventListener("submit", addProject);
         }
 
-        // Load project data when the page opens
+        // Handle star and delete buttons on current and future cards
+        projectGrid.addEventListener("click", async (event) => {
+            const button = event.target.closest(
+                "button[data-action]"
+            );
+
+            if (!button || button.disabled) {
+                return;
+            }
+
+            const action = button.dataset.action;
+            const endpoint = fillUrl(
+                action === "star"
+                    ? STAR_PROJECT_ENDPOINT
+                    : DETAIL_PROJECT_ENDPOINT,
+                button.dataset.id
+            );
+            button.disabled = true;
+
+            try {
+                await writeJson(
+                    endpoint,
+                    action === "star" ? "POST" : "DELETE"
+                );
+                showToast(
+                    "Success",
+                    action === "star"
+                        ? "Project star updated."
+                        : "Project deleted successfully.",
+                    "success"
+                );
+                await fetchProjects();
+            } catch (error) {
+                showToast(
+                    "Request failed",
+                    error.message,
+                    "error",
+                    5000
+                );
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        // Load DRF project data when the page opens
         fetchProjects();
     </script>
 {% endblock content %}
