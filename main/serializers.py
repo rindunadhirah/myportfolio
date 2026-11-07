@@ -169,20 +169,13 @@ class ExperienceSerializer(
         ]
 
     def validate_title(self, value):
-        value = strip_tags(value).strip()
-
-        if not value:
-            raise serializers.ValidationError(
-                "Role title cannot be empty."
-            )
-
-        return value
+        return self._clean_required_text(value, "Role title")
 
     def validate_organization(self, value):
-        return strip_tags(value).strip()
+        return self._clean_required_text(value, "Organization")
 
     def validate_description(self, value):
-        return strip_tags(value).strip()
+        return self._clean_required_text(value, "Description")
 
     def validate_responsibilities(self, value):
         if not isinstance(value, list):
@@ -230,3 +223,15 @@ class ExperienceSerializer(
 
     def get_category_label(self, obj):
         return obj.get_category_display()
+
+    @staticmethod
+    def _clean_required_text(value, label):
+        """Remove HTML and reject text that becomes empty."""
+        cleaned_value = strip_tags(value).strip()
+
+        if not cleaned_value:
+            raise serializers.ValidationError(
+                f"{label} cannot be empty."
+            )
+
+        return cleaned_value
