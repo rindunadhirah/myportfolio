@@ -290,6 +290,10 @@ def show_experience(request):
             "category",
             "",
         ).strip(),
+        "ordering_query": request.GET.get(
+            "ordering",
+            "newest",
+        ).strip(),
         "is_editor": user_is_editor(request.user),
         "form": ExperienceForm(),
     }

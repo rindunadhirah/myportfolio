@@ -117,6 +117,10 @@ def experience_list(request):
         ).all()
         search = request.query_params.get("search", "").strip()
         category = request.query_params.get("category", "").strip()
+        ordering = request.query_params.get(
+            "ordering",
+            "newest",
+        ).strip()
 
         if search:
             experiences = experiences.filter(
@@ -126,6 +130,19 @@ def experience_list(request):
 
         if category:
             experiences = experiences.filter(category=category)
+
+        # Only allow the sorting choices offered by the page
+        ordering_fields = {
+            "newest": ("-started_on", "title"),
+            "oldest": ("started_on", "title"),
+            "title": ("title", "-started_on"),
+        }
+        experiences = experiences.order_by(
+            *ordering_fields.get(
+                ordering,
+                ordering_fields["newest"],
+            )
+        )
 
         serializer = ExperienceSerializer(
             experiences,

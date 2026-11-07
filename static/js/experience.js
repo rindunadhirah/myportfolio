@@ -26,6 +26,9 @@ if (experienceApp) {
     const categoryFilter = document.getElementById(
         "experience-category"
     );
+    const orderingFilter = document.getElementById(
+        "experience-ordering"
+    );
     const loadingState = document.getElementById(
         "experience-loading"
     );
@@ -353,7 +356,7 @@ if (experienceApp) {
     }
 
     // Keep the visible URL synchronized with the active filters
-    function updateBrowserUrl(search, category) {
+    function updateBrowserUrl(search, category, ordering) {
         const url = new URL(window.location.href);
 
         if (search) {
@@ -366,6 +369,12 @@ if (experienceApp) {
             url.searchParams.set("category", category);
         } else {
             url.searchParams.delete("category");
+        }
+
+        if (ordering && ordering !== "newest") {
+            url.searchParams.set("ordering", ordering);
+        } else {
+            url.searchParams.delete("ordering");
         }
 
         window.history.replaceState({}, "", url);
@@ -386,6 +395,7 @@ if (experienceApp) {
         );
         const search = searchInput.value.trim();
         const category = categoryFilter.value;
+        const ordering = orderingFilter.value;
 
         if (search) {
             endpoint.searchParams.set("search", search);
@@ -395,12 +405,14 @@ if (experienceApp) {
             endpoint.searchParams.set("category", category);
         }
 
+        endpoint.searchParams.set("ordering", ordering);
+
         try {
             const experiences = await readJson(endpoint, {
                 signal: experienceController.signal,
             });
             experienceGrid.replaceChildren();
-            updateBrowserUrl(search, category);
+            updateBrowserUrl(search, category, ordering);
 
             if (experiences.length === 0) {
                 displayPageState({ showEmpty: true });
@@ -720,6 +732,10 @@ if (experienceApp) {
     });
 
     categoryFilter.addEventListener(
+        "change",
+        fetchExperiences
+    );
+    orderingFilter.addEventListener(
         "change",
         fetchExperiences
     );

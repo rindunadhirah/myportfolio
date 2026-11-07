@@ -99,6 +99,36 @@
                             </select>
                         </div>
 
+                        <div class="experience-filter-field">
+                            <label for="experience-ordering">
+                                Sort by
+                            </label>
+
+                            <select
+                                name="ordering"
+                                id="experience-ordering"
+                            >
+                                <option
+                                    value="newest"
+                                    {% if ordering_query == "newest" %}selected{% endif %}
+                                >
+                                    Newest first
+                                </option>
+                                <option
+                                    value="oldest"
+                                    {% if ordering_query == "oldest" %}selected{% endif %}
+                                >
+                                    Oldest first
+                                </option>
+                                <option
+                                    value="title"
+                                    {% if ordering_query == "title" %}selected{% endif %}
+                                >
+                                    Title A to Z
+                                </option>
+                            </select>
+                        </div>
+
                         <button type="submit" class="button">
                             Apply
                         </button>
