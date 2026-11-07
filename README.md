@@ -345,7 +345,7 @@ The following table contains shortened versions of the main prompts used during 
 | Improve form feedback | Explain why the Experience form only says that the Responsibilities value is invalid. | I found that the field expected JSON, changed it to one responsibility per line, and checked the clearer field errors. |
 | Debug missing projects | Find why the Projects page became empty after moving AJAX helpers into a shared file. | I tested the page, found a JavaScript name conflict, and verified that the cards returned after the helper was scoped correctly. |
 | Plan Assignment 6 | Read the DRF rubric and compare it with the completed Tutorial 7 code before making changes. | I kept the working serializer and API code, then focused on missing editing, testing, and documentation requirements. |
-| Add API editing | Change Experience editing to use the detail API and PATCH without leaving the page. | I kept the existing design and planned to test the owner and Editor workflows in the browser. |
+| Add API editing | Change Experience editing to use the detail API and PATCH without leaving the page. | I kept the existing design and tested the owner and Editor workflows in the browser. |
 | Strengthen validation | Check whether text containing only HTML tags could pass serializer validation. | I added required cleaned-text checks for the title, organization, and description. |
 | Test API access | Add focused tests for every role, rejected database changes, stars, sorting, status codes, and real CSRF behavior. | I ran the focused tests and the complete `main` test suite before committing them. |
 
