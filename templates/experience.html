@@ -23,7 +23,6 @@
             data-login-url="{% url 'main:login' %}"
             data-star-url-template="{% url 'api:experience-star' '00000000-0000-0000-0000-000000000000' %}"
             data-detail-url-template="{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}"
-            data-update-url-template="{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}"
             data-is-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
             data-is-superuser="{{ user.is_superuser|yesno:'true,false' }}"
             data-is-editor="{{ is_editor|yesno:'true,false' }}"
@@ -48,6 +47,7 @@
                     {% if user.is_superuser %}
                         <button
                             type="button"
+                            id="add-experience-button"
                             class="button"
                             popovertarget="add-experience-modal"
                         >
@@ -149,7 +149,7 @@
         </section>
     </main>
 
-    {% if user.is_superuser %}
+    {% if user.is_superuser or is_editor %}
         {% include "components/experience_form_modal.html" %}
     {% endif %}
 

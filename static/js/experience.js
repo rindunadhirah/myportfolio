@@ -2,7 +2,7 @@ const experienceApp = document.getElementById("experience-app");
 
 if (experienceApp) {
     const SEARCH_DELAY = 300;
-    const { fillUrl, writeJson } = window.ajaxUtils;
+    const { fillUrl, readJson, writeJson } = window.ajaxUtils;
 
     const config = {
         endpoint: experienceApp.dataset.experiencesEndpoint,
@@ -11,7 +11,6 @@ if (experienceApp) {
         loginUrl: experienceApp.dataset.loginUrl,
         starUrlTemplate: experienceApp.dataset.starUrlTemplate,
         detailUrlTemplate: experienceApp.dataset.detailUrlTemplate,
-        updateUrlTemplate: experienceApp.dataset.updateUrlTemplate,
         isAuthenticated:
             experienceApp.dataset.isAuthenticated === "true",
         isSuperuser: experienceApp.dataset.isSuperuser === "true",
@@ -45,9 +44,22 @@ if (experienceApp) {
     const experienceForm = document.getElementById(
         "experience-form"
     );
+    const experienceModal = document.getElementById(
+        "add-experience-modal"
+    );
+    const experienceModalTitle = document.getElementById(
+        "add-experience-modal-title"
+    );
+    const experienceSubmitButton = document.getElementById(
+        "experience-form-submit"
+    );
+    const addExperienceButton = document.getElementById(
+        "add-experience-button"
+    );
 
     let searchTimer;
     let experienceController;
+    let editingExperienceId = null;
 
     // Format a stored date for the card
     function formatMonthYear(dateValue) {
@@ -152,14 +164,10 @@ if (experienceApp) {
             return null;
         }
 
-        const editLink = document.createElement("a");
-        editLink.href = fillUrl(
-            config.updateUrlTemplate,
-            experienceId
-        );
-        editLink.className = "button";
-        editLink.textContent = "Edit Experience";
-        return editLink;
+        const editButton = createButton("Edit Experience");
+        editButton.dataset.action = "edit";
+        editButton.dataset.id = experienceId;
+        return editButton;
     }
 
     function buildDeleteControl(experience, experienceId) {
@@ -388,20 +396,9 @@ if (experienceApp) {
         }
 
         try {
-            const response = await fetch(endpoint, {
-                headers: {
-                    Accept: "application/json",
-                },
+            const experiences = await readJson(endpoint, {
                 signal: experienceController.signal,
             });
-
-            if (!response.ok) {
-                throw new Error(
-                    `Request failed with status ${response.status}`
-                );
-            }
-
-            const experiences = await response.json();
             experienceGrid.replaceChildren();
             updateBrowserUrl(search, category);
 
@@ -428,12 +425,79 @@ if (experienceApp) {
     }
 
     function closeExperienceModal() {
-        const modal = document.getElementById(
-            "add-experience-modal"
-        );
+        if (experienceModal?.matches(":popover-open")) {
+            experienceModal.hidePopover();
+        }
+    }
 
-        if (modal?.matches(":popover-open")) {
-            modal.hidePopover();
+    // Prepare the shared form for adding or editing
+    function setExperienceFormMode(experience = null) {
+        if (!experienceForm) {
+            return;
+        }
+
+        clearExperienceErrors();
+        experienceForm.reset();
+        editingExperienceId = experience?.id || null;
+
+        if (editingExperienceId) {
+            experienceModalTitle.textContent = "Edit Experience";
+            experienceSubmitButton.textContent = "Save Changes";
+
+            const values = {
+                title: experience.title,
+                organization: experience.organization,
+                description: experience.description,
+                responsibilities: Array.isArray(
+                    experience.responsibilities
+                )
+                    ? experience.responsibilities.join("\n")
+                    : "",
+                category: experience.category,
+                thumbnail: experience.thumbnail || "",
+                started_on: experience.started_on,
+                ended_on: experience.ended_on || "",
+            };
+
+            for (const [name, value] of Object.entries(values)) {
+                const field = experienceForm.elements.namedItem(name);
+
+                if (field) {
+                    field.value = value;
+                }
+            }
+        } else {
+            experienceModalTitle.textContent = "Add Experience";
+            experienceSubmitButton.textContent = "Add Experience";
+        }
+
+        syncExperienceDates();
+    }
+
+    // Load one record before opening the edit form
+    async function openExperienceEditor(experienceId, button) {
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "Loading...";
+
+        try {
+            const endpoint = fillUrl(
+                config.detailUrlTemplate,
+                experienceId
+            );
+            const experience = await readJson(endpoint);
+            setExperienceFormMode(experience);
+            experienceModal.showPopover();
+        } catch (error) {
+            window.showToast(
+                "Experience could not be opened",
+                error.message,
+                "error",
+                5000
+            );
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
         }
     }
 
@@ -491,8 +555,11 @@ if (experienceApp) {
             const fieldLabel = fieldGroup
                 ?.querySelector("label")
                 ?.textContent.trim() || "Form";
+            const errorList = Array.isArray(fieldErrors)
+                ? fieldErrors
+                : [fieldErrors];
 
-            for (const error of fieldErrors) {
+            for (const error of errorList) {
                 const message = typeof error === "string"
                     ? error
                     : error.message;
@@ -538,28 +605,37 @@ if (experienceApp) {
         };
     }
 
-    // Create an experience through the DRF API
-    async function addExperience(event) {
+    // Create or update an experience through the DRF API
+    async function saveExperience(event) {
         event.preventDefault();
         clearExperienceErrors();
 
-        const submitButton = experienceForm.querySelector(
-            'button[type="submit"]'
-        );
-        submitButton.disabled = true;
+        const isEditing = Boolean(editingExperienceId);
+        const endpoint = isEditing
+            ? fillUrl(
+                config.detailUrlTemplate,
+                editingExperienceId
+            )
+            : config.createEndpoint;
+        experienceSubmitButton.disabled = true;
 
         try {
             await writeJson(
-                config.createEndpoint,
-                "POST",
+                endpoint,
+                isEditing ? "PATCH" : "POST",
                 buildExperiencePayload()
             );
             experienceForm.reset();
+            editingExperienceId = null;
             syncExperienceDates();
             closeExperienceModal();
             window.showToast(
-                "Experience added",
-                "The new experience was added successfully.",
+                isEditing
+                    ? "Experience updated"
+                    : "Experience added",
+                isEditing
+                    ? "The experience was updated successfully."
+                    : "The new experience was added successfully.",
                 "success"
             );
             await fetchExperiences();
@@ -569,13 +645,15 @@ if (experienceApp) {
                 ? displayExperienceErrors(error.data)
                 : [error.message];
             window.showToast(
-                "Experience could not be added",
+                isEditing
+                    ? "Experience could not be updated"
+                    : "Experience could not be added",
                 messages.join("\n"),
                 "error",
                 5000
             );
         } finally {
-            submitButton.disabled = false;
+            experienceSubmitButton.disabled = false;
         }
     }
 
@@ -590,6 +668,15 @@ if (experienceApp) {
         }
 
         const action = button.dataset.action;
+
+        if (action === "edit") {
+            await openExperienceEditor(
+                button.dataset.id,
+                button
+            );
+            return;
+        }
+
         const endpoint = fillUrl(
             action === "star"
                 ? config.starUrlTemplate
@@ -663,7 +750,7 @@ if (experienceApp) {
         );
         experienceForm.addEventListener(
             "submit",
-            addExperience
+            saveExperience
         );
         experienceForm.addEventListener("input", (event) => {
             const fieldGroup = event.target.closest(".form-group");
@@ -675,6 +762,10 @@ if (experienceApp) {
         });
         syncExperienceDates();
     }
+
+    addExperienceButton?.addEventListener("click", () => {
+        setExperienceFormMode();
+    });
 
     fetchExperiences();
 }
