@@ -30,6 +30,7 @@ This website introduces my background, skills, projects, experience, and educati
 - **HTML5:** Provides the semantic structure of the portfolio.
 - **CSS3:** Controls the colors, layouts, responsiveness, hover effects, and animations.
 - **JavaScript and Fetch API:** Load, search, and add portfolio data without reloading the page.
+- **Django REST Framework:** Validates portfolio data and provides versioned JSON APIs.
 - **Git and GitHub:** Track the project's development and commit history.
 
 ## Running the Project Locally
@@ -105,12 +106,16 @@ python manage.py test main
 | `/` | Display the main portfolio page |
 | `/projects/` | Display and search projects |
 | `/projects/add/` | Create a project |
-| `/api/projects/` | Return project data in JSON |
 | `/experience/` | Display and filter experiences |
 | `/experience/add/` | Create an experience |
 | `/experience/<id>/edit/` | Update an experience |
 | `/experience/<id>/delete/` | Delete an experience |
-| `/api/experiences/` | Return experience data in JSON |
+| `/api/v1/projects/` | List, search, or create projects through DRF |
+| `/api/v1/projects/<id>/` | Read, update, or delete one project through DRF |
+| `/api/v1/projects/<id>/star/` | Add or remove the current user's project star |
+| `/api/v1/experiences/` | List, search, filter, sort, or create experiences through DRF |
+| `/api/v1/experiences/<id>/` | Read, update, or delete one experience through DRF |
+| `/api/v1/experiences/<id>/star/` | Add or remove the current user's experience star |
 
 ## Weekly Progress
 
@@ -189,6 +194,20 @@ python manage.py test main
 - Moved shared AJAX helpers into one reusable JavaScript file.
 - Added automated tests for AJAX responses, permissions, CSRF, validation, stars, and XSS protection.
 
+### Week 7 - Tutorial 7 and Assignment 6
+
+- Installed and configured Django REST Framework.
+- Created explicit serializers for Project and Experience data.
+- Added versioned list, detail, and star APIs under `/api/v1/`.
+- Kept validation inside serializers and access rules inside permission classes.
+- Applied separate rights for visitors, regular users, Editors, and the portfolio owner.
+- Changed the Projects and Experience pages to read and change data through DRF.
+- Added an Experience edit modal that loads current data and saves changes with `PATCH`.
+- Added newest, oldest, and title sorting that works with search and category filtering.
+- Kept CSRF protection on every API request that changes data.
+- Added focused API tests for roles, database protection, validation, stars, status codes, sorting, and CSRF.
+- Kept API errors visible through field messages and toast notifications.
+
 ## Reflective Questions
 
 ### Assignment 1
@@ -263,13 +282,37 @@ python manage.py test main
 
    Django templates escape variables automatically. AJAX pages can be more vulnerable when JavaScript places server data into `innerHTML`, because unsafe text may be interpreted as HTML. My Experience page creates elements and uses `textContent` for data. The shared helper escapes values used by the Projects page, and the ModelForms remove HTML tags before saving text. These checks protect both the browser and the server data.
 
+### Assignment 6
+
+1. REST means Representational State Transfer. It is a way to organize communication between a client and a server around resources. Each resource has a clear URL, and standard HTTP methods describe the action. `GET` reads data, `POST` creates data, `PUT` replaces data, `PATCH` changes part of the data, and `DELETE` removes data. A REST API should also return suitable HTTP status codes and should not depend on hidden server state between separate requests.
+
+   Returning JSON alone does not make an API RESTful. A view could return JSON while using one URL and one POST action for every operation. The format would be JSON, but the URL design, methods, and response statuses would not follow REST principles.
+
+   `PUT` is used when the client sends a complete replacement for a resource. For example, a PUT request for an Experience should include its title, organization, description, category, responsibilities, and dates. `PATCH` changes only selected fields. My Experience edit modal uses PATCH because a user may only change the title or description while keeping every other value.
+
+2. A serializer changes Django model objects into data that can be returned as JSON. It also reads incoming JSON, validates each field, and changes valid data back into model objects. My `ExperienceSerializer` cleans HTML from text, validates responsibilities, checks the date range, and provides read-only star information.
+
+   A serializer is safer and easier to maintain than manually building a dictionary for `JsonResponse`. It keeps the field list, validation, conversion, and error messages in one place. It also supports both single objects and lists. Computed fields can be marked read-only so clients cannot replace values such as the star count.
+
+3. Authentication identifies who sent the request. Session authentication connects the request to the account that logged in. Authorization decides what that account is allowed to do.
+
+   In my Experience API, a regular user is authenticated but is not authorized to create, edit, or delete an Experience. An Editor is authorized to update it, while the portfolio owner can create, update, and delete it. These rules are checked by a DRF permission class on the server.
+
+   Hiding a button in the template only changes what the page displays. A user can still send a request manually through the browser console or another program. Server permissions are required because the server must reject every request that does not have the correct access rights.
+
+4. `SessionAuthentication` uses the browser's session cookie. The browser sends that cookie automatically with requests to the website. Without CSRF protection, another website could try to make the browser send an unwanted request while the user is logged in.
+
+   Requests that change data must therefore include a valid CSRF token. Django checks that the token belongs to the same website and session. My Fetch requests read the CSRF cookie and send it through the `X-CSRFToken` header.
+
+   `force_authenticate` is useful for permission tests because it directly attaches a user to the test request. However, it skips the real login and session authentication process, so it does not prove that CSRF checks work. I also use `APIClient(enforce_csrf_checks=True)` with `.login()`. The test confirms that a request without the token is rejected and that the same request succeeds after sending a valid token.
+
 ## AI Use and Prompt History
 
 ### AI Disclosure
 
 I used OpenAI Codex as a guide while working on this assignment. It helped me understand the assignment rubric, plan the HTML sections, write readable CSS, and check responsive layouts.
 
-I asked the AI to give code in small steps and explain where each block should be placed. For Assignments 1 to 4, I typed most changes into my project. For Assignment 5, I allowed Codex to edit the files directly, then I reviewed the changes, tested them in the browser, and created the commits myself. I also changed several AI suggestions when they did not match the assignment rules, my real project information, or my design preferences.
+I asked the AI to give code in small steps and explain where each block should be placed. For Assignments 1 to 4, I typed most changes into my project. For Assignments 5 and 6, I allowed Codex to edit files directly. In Assignment 6, Codex also created local commits, while I kept control of browser testing and pushing the branch. I reviewed the changes and test results instead of accepting the output without checking it. I also changed AI suggestions when they did not match the assignment rules, my real project information, or my design preferences.
 
 ### Prompt Strategy
 
@@ -301,6 +344,10 @@ The following table contains shortened versions of the main prompts used during 
 | Plan Assignment 5 | Apply the Tutorial 5 AJAX pattern to Experience and divide the work into clear commits. | I compared the plan with the checklist and tested each completed feature before committing it. |
 | Improve form feedback | Explain why the Experience form only says that the Responsibilities value is invalid. | I found that the field expected JSON, changed it to one responsibility per line, and checked the clearer field errors. |
 | Debug missing projects | Find why the Projects page became empty after moving AJAX helpers into a shared file. | I tested the page, found a JavaScript name conflict, and verified that the cards returned after the helper was scoped correctly. |
+| Plan Assignment 6 | Read the DRF rubric and compare it with the completed Tutorial 7 code before making changes. | I kept the working serializer and API code, then focused on missing editing, testing, and documentation requirements. |
+| Add API editing | Change Experience editing to use the detail API and PATCH without leaving the page. | I kept the existing design and planned to test the owner and Editor workflows in the browser. |
+| Strengthen validation | Check whether text containing only HTML tags could pass serializer validation. | I added required cleaned-text checks for the title, organization, and description. |
+| Test API access | Add focused tests for every role, rejected database changes, stars, sorting, status codes, and real CSRF behavior. | I ran the focused tests and the complete `main` test suite before committing them. |
 
 ### AI Limitations and My Manual Fixes
 
@@ -323,5 +370,8 @@ The AI was useful, but its answers were not always correct or suitable for my as
 - The account menu initially made the navigation bar too wide. I tested the page and adjusted the layout so the main navigation remained compact.
 - The first Experience modal expected Responsibilities to be written as JSON. I found this confusing during manual testing, so I changed the form to accept one normal sentence per line.
 - Moving AJAX helpers into one file initially caused a JavaScript name conflict and stopped the Projects cards from loading. I noticed the empty page, reported it, and confirmed that the fix restored the cards.
+- Codex first used outdated class names in a targeted test command. I checked the discovered test classes, corrected the command, and reran the relevant tests successfully.
+- One new test expected an anonymous request with the wrong HTTP method to return 405. DRF returned 403 because permission checks happened first. I changed the method test to authenticate first so it checks the intended behavior.
+- The original Experience serializer removed HTML tags but did not reject every field when the cleaned value became empty. I found this while planning validation tests and added a reusable required-text check.
 
 In conclusion, AI helped me with ideas and explanations, but I still check the original assignment, confirm facts, understand the code, and test the result myself.
