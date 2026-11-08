@@ -29,7 +29,7 @@ This website introduces my background, skills, projects, experience, and educati
 - **SQLite:** Stores project and experience information.
 - **HTML5:** Provides the semantic structure of the portfolio.
 - **CSS3:** Controls the colors, layouts, responsiveness, hover effects, and animations.
-- **JavaScript and Fetch API:** Load, search, and add portfolio data without reloading the page.
+- **JavaScript and Fetch API:** Load, search, create, update, star, and delete portfolio data without reloading the page.
 - **Django REST Framework:** Validates portfolio data and provides versioned JSON APIs.
 - **Git and GitHub:** Track the project's development and commit history.
 
