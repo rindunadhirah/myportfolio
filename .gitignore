@@ -121,8 +121,8 @@ sftp-config.json
 # macOS
 .DS_Store
 
-# Temporary PDF render files
-/tmp/pdfs/
+# Temporary document and image render files
+/tmp/
 
 # Generated static files for deployment
 /staticfiles/

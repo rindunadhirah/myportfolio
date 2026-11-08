@@ -55,6 +55,29 @@
             || `Request failed with status ${status}.`;
     }
 
+    // Read JSON and provide the same clear API errors as writes
+    async function readJson(url, options = {}) {
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                Accept: "application/json",
+                ...options.headers,
+            },
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const error = new Error(
+                apiErrorMessage(data, response.status)
+            );
+            error.data = data;
+            error.status = response.status;
+            throw error;
+        }
+
+        return data;
+    }
+
     // Send a JSON write request with Django's CSRF token
     async function writeJson(url, method, payload) {
         const response = await fetch(url, {
@@ -93,6 +116,7 @@
         escapeHtml,
         fillUrl,
         getCookie,
+        readJson,
         writeJson,
     });
 })();

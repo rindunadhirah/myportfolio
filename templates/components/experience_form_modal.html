@@ -1,4 +1,4 @@
-<!-- Add an experience without leaving the Experience page -->
+<!-- Add or edit an experience without leaving the page -->
 <div
     id="add-experience-modal"
     class="project-form-modal"
@@ -27,7 +27,11 @@
         </button>
 
         <h2 id="add-experience-modal-title">
-            Add Experience
+            {% if user.is_superuser %}
+                Add Experience
+            {% else %}
+                Edit Experience
+            {% endif %}
         </h2>
 
         <form
@@ -68,8 +72,16 @@
                     Cancel
                 </button>
 
-                <button type="submit" class="button">
-                    Add Experience
+                <button
+                    type="submit"
+                    id="experience-form-submit"
+                    class="button"
+                >
+                    {% if user.is_superuser %}
+                        Add Experience
+                    {% else %}
+                        Save Changes
+                    {% endif %}
                 </button>
             </div>
         </form>
