@@ -30,6 +30,11 @@ class ProjectSerializer(
 ):
     """Validate and represent Project API data."""
 
+    image_path = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
     star_count = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
     starred_by_names = serializers.SerializerMethodField()

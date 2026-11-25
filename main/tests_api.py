@@ -126,15 +126,18 @@ class PortfolioApiTest(APITestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Token {token_key}",
         )
+        mobile_payload = self.project_payload()
+        mobile_payload.pop("image_path")
         create_response = self.client.post(
             self.project_list_url,
-            self.project_payload(),
+            mobile_payload,
             format="json",
         )
         self.assertEqual(
             create_response.status_code,
             status.HTTP_201_CREATED,
         )
+        self.assertEqual(create_response.data["image_path"], "")
 
         logout_response = self.client.post(self.logout_url)
         self.assertEqual(
