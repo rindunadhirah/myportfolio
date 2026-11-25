@@ -1,4 +1,5 @@
 from django.utils.html import strip_tags
+from django.utils.text import slugify
 from rest_framework import serializers
 
 from main.models import Experience, Project
@@ -30,6 +31,12 @@ class ProjectSerializer(
 ):
     """Validate and represent Project API data."""
 
+    image_path = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    slug = serializers.SlugField(required=False, allow_blank=True)
     star_count = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
     starred_by_names = serializers.SerializerMethodField()
@@ -74,6 +81,19 @@ class ProjectSerializer(
 
         return value
 
+    def validate_slug(self, value):
+        if not value:
+            return value
+
+        projects = Project.objects.filter(slug=value)
+        if self.instance is not None:
+            projects = projects.exclude(pk=self.instance.pk)
+        if projects.exists():
+            raise serializers.ValidationError(
+                "A project with this slug already exists."
+            )
+        return value
+
     def validate_summary(self, value):
         return strip_tags(value).strip()
 
@@ -113,6 +133,25 @@ class ProjectSerializer(
             )
 
         return attrs
+
+    def create(self, validated_data):
+        if not validated_data.get("slug"):
+            validated_data["slug"] = self._unique_slug(
+                validated_data["title"]
+            )
+        return super().create(validated_data)
+
+    @staticmethod
+    def _unique_slug(title):
+        base_slug = slugify(title) or "project"
+        slug = base_slug
+        suffix = 2
+
+        while Project.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{suffix}"
+            suffix += 1
+
+        return slug
 
     @staticmethod
     def _clean_text_list(value, field_name):

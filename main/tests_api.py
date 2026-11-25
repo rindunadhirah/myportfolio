@@ -4,6 +4,7 @@ import uuid
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
 
 from main.models import Experience, Project
@@ -72,6 +73,8 @@ class PortfolioApiTest(APITestCase):
             "api:experience-star",
             args=[self.experience.id],
         )
+        self.token_url = reverse("api:api-token-auth")
+        self.logout_url = reverse("api:api-logout")
 
     def project_payload(self, **changes):
         data = {
@@ -106,6 +109,68 @@ class PortfolioApiTest(APITestCase):
         data.update(changes)
         return data
 
+    def test_token_login_create_project_and_logout(self):
+        login_response = self.client.post(
+            self.token_url,
+            {
+                "username": "owner",
+                "password": "test-password",
+            },
+            format="json",
+        )
+
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        token_key = login_response.data["token"]
+        self.assertTrue(Token.objects.filter(key=token_key).exists())
+
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Token {token_key}",
+        )
+        mobile_payload = self.project_payload()
+        mobile_payload.pop("image_path")
+        mobile_payload.pop("slug")
+        create_response = self.client.post(
+            self.project_list_url,
+            mobile_payload,
+            format="json",
+        )
+        self.assertEqual(
+            create_response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertEqual(create_response.data["image_path"], "")
+        self.assertEqual(create_response.data["slug"], "new-api-project")
+
+        logout_response = self.client.post(self.logout_url)
+        self.assertEqual(
+            logout_response.status_code,
+            status.HTTP_204_NO_CONTENT,
+        )
+        self.assertFalse(Token.objects.filter(key=token_key).exists())
+
+        rejected_response = self.client.post(
+            self.project_list_url,
+            self.project_payload(slug="after-logout"),
+            format="json",
+        )
+        self.assertEqual(
+            rejected_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_token_login_rejects_invalid_credentials(self):
+        response = self.client.post(
+            self.token_url,
+            {
+                "username": "owner",
+                "password": "wrong-password",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("token", response.data)
+
     def test_public_project_list_detail_search_and_empty_results(self):
         list_response = self.client.get(self.project_list_url)
         detail_response = self.client.get(self.project_detail_url)
@@ -126,29 +191,42 @@ class PortfolioApiTest(APITestCase):
         self.assertEqual(empty_response.data, [])
 
     def test_guest_and_regular_user_cannot_manage_projects(self):
-        for user in (None, self.visitor):
-            self.client.force_authenticate(user=user)
+        guest_responses = [
+            self.client.post(
+                self.project_list_url,
+                self.project_payload(),
+                format="json",
+            ),
+            self.client.patch(
+                self.project_detail_url,
+                {"title": "Changed"},
+                format="json",
+            ),
+            self.client.delete(self.project_detail_url),
+        ]
+        for response in guest_responses:
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_401_UNAUTHORIZED,
+            )
 
+        self.client.force_authenticate(user=self.visitor)
+        regular_user_responses = [
+            self.client.post(
+                self.project_list_url,
+                self.project_payload(),
+                format="json",
+            ),
+            self.client.patch(
+                self.project_detail_url,
+                {"title": "Changed"},
+                format="json",
+            ),
+            self.client.delete(self.project_detail_url),
+        ]
+        for response in regular_user_responses:
             self.assertEqual(
-                self.client.post(
-                    self.project_list_url,
-                    self.project_payload(),
-                    format="json",
-                ).status_code,
-                status.HTTP_403_FORBIDDEN,
-            )
-            self.assertEqual(
-                self.client.patch(
-                    self.project_detail_url,
-                    {"title": "Changed"},
-                    format="json",
-                ).status_code,
-                status.HTTP_403_FORBIDDEN,
-            )
-            self.assertEqual(
-                self.client.delete(
-                    self.project_detail_url
-                ).status_code,
+                response.status_code,
                 status.HTTP_403_FORBIDDEN,
             )
 
@@ -240,7 +318,7 @@ class PortfolioApiTest(APITestCase):
     def test_project_star_requires_login_and_toggles(self):
         self.assertEqual(
             self.client.post(self.project_star_url).status_code,
-            status.HTTP_403_FORBIDDEN,
+            status.HTTP_401_UNAUTHORIZED,
         )
 
         self.client.force_authenticate(user=self.visitor)
