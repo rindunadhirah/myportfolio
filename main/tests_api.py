@@ -4,6 +4,7 @@ import uuid
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
 
 from main.models import Experience, Project
@@ -72,6 +73,8 @@ class PortfolioApiTest(APITestCase):
             "api:experience-star",
             args=[self.experience.id],
         )
+        self.token_url = reverse("api:api-token-auth")
+        self.logout_url = reverse("api:api-logout")
 
     def project_payload(self, **changes):
         data = {
@@ -105,6 +108,63 @@ class PortfolioApiTest(APITestCase):
         }
         data.update(changes)
         return data
+
+    def test_token_login_create_project_and_logout(self):
+        login_response = self.client.post(
+            self.token_url,
+            {
+                "username": "owner",
+                "password": "test-password",
+            },
+            format="json",
+        )
+
+        self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+        token_key = login_response.data["token"]
+        self.assertTrue(Token.objects.filter(key=token_key).exists())
+
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Token {token_key}",
+        )
+        create_response = self.client.post(
+            self.project_list_url,
+            self.project_payload(),
+            format="json",
+        )
+        self.assertEqual(
+            create_response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        logout_response = self.client.post(self.logout_url)
+        self.assertEqual(
+            logout_response.status_code,
+            status.HTTP_204_NO_CONTENT,
+        )
+        self.assertFalse(Token.objects.filter(key=token_key).exists())
+
+        rejected_response = self.client.post(
+            self.project_list_url,
+            self.project_payload(slug="after-logout"),
+            format="json",
+        )
+        self.assertEqual(
+            rejected_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_token_login_rejects_invalid_credentials(self):
+        response = self.client.post(
+            self.token_url,
+            {
+                "username": "owner",
+                "password": "wrong-password",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("token", response.data)
 
     def test_public_project_list_detail_search_and_empty_results(self):
         list_response = self.client.get(self.project_list_url)

@@ -124,9 +124,18 @@ class AssignmentSixExperienceApiTest(APITestCase):
         )
         delete_response = self.client.delete(self.detail_url)
 
-        self.assertEqual(create_response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(update_response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(delete_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            create_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+        self.assertEqual(
+            update_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+        self.assertEqual(
+            delete_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
         self.assertEqual(Experience.objects.count(), 1)
         self.experience.refresh_from_db()
         self.assertEqual(self.experience.title, original_title)
@@ -250,7 +259,10 @@ class AssignmentSixExperienceApiTest(APITestCase):
 
     def test_star_requires_login_and_uses_current_user(self):
         visitor_response = self.client.post(self.star_url)
-        self.assertEqual(visitor_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            visitor_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
         self.assertEqual(self.experience.starred_by.count(), 0)
 
         self.client.force_authenticate(user=self.regular_user)
