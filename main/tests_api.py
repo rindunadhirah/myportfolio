@@ -128,6 +128,7 @@ class PortfolioApiTest(APITestCase):
         )
         mobile_payload = self.project_payload()
         mobile_payload.pop("image_path")
+        mobile_payload.pop("slug")
         create_response = self.client.post(
             self.project_list_url,
             mobile_payload,
@@ -138,6 +139,7 @@ class PortfolioApiTest(APITestCase):
             status.HTTP_201_CREATED,
         )
         self.assertEqual(create_response.data["image_path"], "")
+        self.assertEqual(create_response.data["slug"], "new-api-project")
 
         logout_response = self.client.post(self.logout_url)
         self.assertEqual(
