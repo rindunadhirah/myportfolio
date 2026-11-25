@@ -126,29 +126,42 @@ class PortfolioApiTest(APITestCase):
         self.assertEqual(empty_response.data, [])
 
     def test_guest_and_regular_user_cannot_manage_projects(self):
-        for user in (None, self.visitor):
-            self.client.force_authenticate(user=user)
+        guest_responses = [
+            self.client.post(
+                self.project_list_url,
+                self.project_payload(),
+                format="json",
+            ),
+            self.client.patch(
+                self.project_detail_url,
+                {"title": "Changed"},
+                format="json",
+            ),
+            self.client.delete(self.project_detail_url),
+        ]
+        for response in guest_responses:
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_401_UNAUTHORIZED,
+            )
 
+        self.client.force_authenticate(user=self.visitor)
+        regular_user_responses = [
+            self.client.post(
+                self.project_list_url,
+                self.project_payload(),
+                format="json",
+            ),
+            self.client.patch(
+                self.project_detail_url,
+                {"title": "Changed"},
+                format="json",
+            ),
+            self.client.delete(self.project_detail_url),
+        ]
+        for response in regular_user_responses:
             self.assertEqual(
-                self.client.post(
-                    self.project_list_url,
-                    self.project_payload(),
-                    format="json",
-                ).status_code,
-                status.HTTP_403_FORBIDDEN,
-            )
-            self.assertEqual(
-                self.client.patch(
-                    self.project_detail_url,
-                    {"title": "Changed"},
-                    format="json",
-                ).status_code,
-                status.HTTP_403_FORBIDDEN,
-            )
-            self.assertEqual(
-                self.client.delete(
-                    self.project_detail_url
-                ).status_code,
+                response.status_code,
                 status.HTTP_403_FORBIDDEN,
             )
 
@@ -240,7 +253,7 @@ class PortfolioApiTest(APITestCase):
     def test_project_star_requires_login_and_toggles(self):
         self.assertEqual(
             self.client.post(self.project_star_url).status_code,
-            status.HTTP_403_FORBIDDEN,
+            status.HTTP_401_UNAUTHORIZED,
         )
 
         self.client.force_authenticate(user=self.visitor)
